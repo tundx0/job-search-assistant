@@ -1,0 +1,143 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String          @id @default(uuid())
+  email          String          @unique
+  passwordHash    String
+  name           String
+  role           String          @default("USER") // Added role field with default USER
+  bio            String?
+  location       String?
+  phone          String?
+  linkedin       String?
+  github         String?
+  website        String?
+  experience     Json
+  education      Json
+  projects       Json?
+  skills         String[]
+  jobApplications JobApplication[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  accounts       Account[]
+  sessions       Session[]
+  apiKeys        UserApiKey[]
+  aiModelPreference String?       // The preferred AI model to use (openai, google, anthropic, deepseek)
+  aiModelId       String?        // The specific model ID within the provider (e.g., gpt-4, gemini-pro)
+  atsOptimizationEnabled Boolean @default(false) // Toggle for ATS optimization features
+}
+
+model JobApplication {
+  id               String          @id @default(uuid())
+  userId           String
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobTitle         String
+  companyName      String
+  jobDescription   String          @db.Text
+  tailoredResume   String          // URL or file key
+  coverLetter      String          // URL or file key
+  tailoredResumePdf String?        // URL to PDF version
+  coverLetterPdf   String?         // URL to PDF version
+  tailoredResumeJSON String?       // URL to the JSON resume file
+  jobUrl           String?         // URL to the original job posting
+  strengthScore    Int?            // Score from 0-100 indicating resume match strength
+  status           String          // pending/submitted/etc
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  resumeInsight    ResumeInsight?
+}
+
+// NextAuth.js Models
+model Account {
+  id                 String  @id @default(uuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+  
+  @@index([email])
+}
+
+model ResumeInsight {
+  id                String        @id @default(uuid())
+  jobApplicationId  String        @unique
+  jobApplication    JobApplication @relation(fields: [jobApplicationId], references: [id], onDelete: Cascade)
+  
+  // Overall assessment
+  overallFeedback   String        @db.Text
+  improvementAreas  String[]      // Areas that need improvement
+  strengths         String[]      // Areas that are strong
+  
+  // Specific insights
+  missingKeywords   String[]      // Keywords from job that are missing in resume
+  skillGaps         String[]      // Skills mentioned in job but missing in resume
+  formatSuggestions String?       @db.Text
+  contentSuggestions String?      @db.Text
+  
+  // Section-specific feedback
+  summaryFeedback   String?       @db.Text
+  experienceFeedback String?      @db.Text
+  educationFeedback String?       @db.Text
+  skillsFeedback    String?       @db.Text
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+model UserApiKey {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider      String   // openai, google, anthropic, deepseek
+  apiKey        String   @db.Text // Encrypted API key
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([userId, provider])
+}
