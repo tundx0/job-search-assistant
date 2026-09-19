@@ -1,171 +1,574 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Archivo, Fraunces, Space_Mono } from "next/font/google";
+
+import "./landing.css";
+
+const display = Fraunces({
+  subsets: ["latin"],
+  axes: ["SOFT", "WONK", "opsz"],
+  style: ["normal", "italic"],
+  variable: "--ds-font-display",
+  display: "swap",
+});
+
+const body = Archivo({
+  subsets: ["latin"],
+  variable: "--ds-font-body",
+  display: "swap",
+});
+
+const mono = Space_Mono({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--ds-font-mono",
+  display: "swap",
+});
+
+const NAV = [
+  { href: "#method", label: "Method" },
+  { href: "#toolkit", label: "Toolkit" },
+  { href: "#questions", label: "Questions" },
+];
+
+const TICKER = [
+  "Paste the posting",
+  "Match the keywords",
+  "Rewrite the bullets",
+  "Score the fit",
+  "Draft the letter",
+  "Export the PDF",
+  "Track the reply",
+];
+
+const STEPS = [
+  {
+    no: "01",
+    title: "Write your profile once",
+    copy: "Experience, education, projects, links and skills live in one structured record — not scattered across a dozen forks of the same document.",
+    tags: ["Structured profile", "Reusable", "Editable anytime"],
+  },
+  {
+    no: "02",
+    title: "Drop in the job",
+    copy: "Paste the description and add the company details. Choose the model you trust for this application, and switch ATS optimisation on when the posting is going through a filter first.",
+    tags: ["Any posting", "Model of your choice", "ATS toggle"],
+  },
+  {
+    no: "03",
+    title: "Send something that fits",
+    copy: "You get a tailored resume and cover letter drawn from your real history, a strength score against the posting, and a PDF ready to attach — all filed under the application you just created.",
+    tags: ["Resume + letter", "Strength score", "PDF export"],
+  },
+];
+
+const FAQ = [
+  {
+    q: "Does it invent experience I do not have?",
+    a: "No. Every draft is built from the profile you wrote. The model decides what to lead with, how to phrase it and what to leave out for a given posting — it does not manufacture jobs, dates or credentials.",
+  },
+  {
+    q: "Which AI models can I use?",
+    a: "OpenAI and Google Gemini models are supported, and you pick the default in settings. Add your own API keys and requests run on your account, at your rates, with your provider's data policy.",
+  },
+  {
+    q: "What does the strength score actually measure?",
+    a: "The generated resume is read back against the job description and scored on how well the two line up, with the specific gaps listed out. It is a review pass before you send, not a guarantee of an interview.",
+  },
+  {
+    q: "What happens to my documents?",
+    a: "Generated files are stored against your account through a pluggable storage layer — local disk, Amazon S3 or Supabase, depending on how the instance is configured. Private files are served through signed URLs.",
+  },
+];
 
 export default function HomePage() {
+  const year = new Date().getFullYear();
+
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-background via-muted/60 to-background">
-      <header className="border-b bg-background/80 backdrop-blur sticky top-0 z-10 shadow-sm w-full" style={{width:'100%'}}>
-        <div className="w-full max-w-7xl mx-auto flex h-16 items-center justify-between px-4 md:px-8">
-          <div className="flex items-center gap-6 font-medium">
-            <h1 className="text-2xl font-extrabold tracking-tight">Job Search Assistant</h1>
-          </div>
-          <nav className="flex items-center gap-4">
-            <Link href="/auth/login">
-              <Button variant="ghost" size="lg">Login</Button>
-            </Link>
-            <Link href="/auth/register">
-              <Button size="lg">Get Started</Button>
-            </Link>
+    <div className={`ds ${display.variable} ${body.variable} ${mono.variable}`}>
+      <header className="ds-masthead">
+        <div className="ds-shell ds-masthead__row">
+          <Link href="/" className="ds-wordmark" aria-label="Job Search Assistant, home">
+            <span className="ds-wordmark__mark" aria-hidden="true">
+              JS
+            </span>
+            <span className="ds-wordmark__name">Job Search Assistant</span>
+          </Link>
+
+          <nav className="ds-masthead__nav" aria-label="Primary">
+            {NAV.map((item) => (
+              <Link key={item.href} href={item.href} className="ds-navlink">
+                {item.label}
+              </Link>
+            ))}
           </nav>
+
+          <div className="ds-masthead__actions">
+            <Link href="/auth/login" className="ds-btn ds-btn--ghost ds-masthead__login">
+              Log in
+            </Link>
+            <Link href="/auth/register" className="ds-btn ds-btn--signal">
+              Start free
+            </Link>
+          </div>
         </div>
       </header>
-      <main className="flex-1 flex flex-col items-center justify-center">
-        <section className="w-full py-16 md:py-28 lg:py-36 bg-gradient-to-br from-primary/5 via-background to-muted/30">
-          <div className="container mx-auto px-4 md:px-6 max-w-5xl">
-            <div className="grid gap-10 lg:grid-cols-2 lg:gap-20 items-center">
-              <div className="space-y-6 text-center lg:text-left">
-                <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight bg-gradient-to-r from-primary to-primary/70 text-transparent bg-clip-text">
-                  Land Your Dream Job<br className="hidden md:block" /> with AI-Powered Assistance
-                </h1>
-                <p className="text-muted-foreground md:text-xl max-w-xl mx-auto lg:mx-0">
-                  Our intelligent assistant helps you create tailored resumes and cover letters that match job descriptions perfectly, increasing your chances of getting hired.
+
+      <main>
+        {/* ---------------------------------------------------------- Hero */}
+        <section className="ds-hero">
+          <div className="ds-shell ds-shell--ruled">
+            <div className="ds-hero__grid">
+              <div>
+                <p className="ds-kicker ds-enter ds-enter-1">
+                  <span className="ds-kicker__dot" aria-hidden="true" />
+                  <span>Resume &amp; cover letter studio</span>
                 </p>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center lg:justify-start">
-                  <Link href="/auth/register">
-                    <Button size="lg" className="w-full min-[400px]:w-auto">Get Started</Button>
+
+                <h1 className="ds-hero__title ds-enter ds-enter-2">
+                  A resume written for <span className="ds-em">this</span> job.
+                  Every time.
+                </h1>
+
+                <p className="ds-hero__lede ds-enter ds-enter-3">
+                  Paste the posting. Job Search Assistant drafts a tailored
+                  resume and cover letter from the profile you already wrote,
+                  scores the result against what the role actually asks for, and
+                  keeps every application in one place.
+                </p>
+
+                <div className="ds-hero__cta ds-enter ds-enter-4">
+                  <Link href="/auth/register" className="ds-btn ds-btn--signal">
+                    Create your account
+                    <span className="ds-btn__arrow" aria-hidden="true">
+                      &rarr;
+                    </span>
                   </Link>
-                  <Link href="#features">
-                    <Button size="lg" variant="outline" className="w-full min-[400px]:w-auto">
-                      Learn More
-                    </Button>
+                  <Link href="#method" className="ds-btn ds-btn--ghost">
+                    See how it works
                   </Link>
                 </div>
+
+                <ul className="ds-facts ds-enter ds-enter-5">
+                  {[
+                    { value: "OpenAI & Gemini", label: "Model choice" },
+                    { value: "Your own keys", label: "Encrypted at rest" },
+                    { value: "ATS-aware", label: "Optional toggle" },
+                  ].map((fact) => (
+                    <li key={fact.value} className="ds-facts__item">
+                      <span className="ds-facts__value">{fact.value}</span>
+                      <span className="ds-facts__label">{fact.label}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <div className="flex items-center justify-center">
-                <div className="rounded-xl bg-muted p-8 shadow-lg border w-full max-w-md">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="h-4 w-3/4 rounded-lg bg-muted-foreground/20" />
-                      <div className="h-4 w-full rounded-lg bg-muted-foreground/20" />
-                      <div className="h-4 w-full rounded-lg bg-muted-foreground/20" />
-                      <div className="h-4 w-2/3 rounded-lg bg-muted-foreground/20" />
+
+              {/* Hero apparatus: posting in, scored draft out. */}
+              <div className="ds-apparatus ds-enter ds-enter-6" aria-hidden="true">
+                <article className="ds-panel ds-card--posting">
+                  <div className="ds-panel__bar">
+                    <span className="ds-mono">Posting</span>
+                    <span className="ds-mono">Senior product engineer</span>
+                  </div>
+                  <div className="ds-panel__body">
+                    <div className="ds-lines">
+                      <span className="ds-line" style={{ width: "88%" }} />
+                      <span className="ds-line" style={{ width: "96%" }} />
+                      <span className="ds-line ds-line--mark" style={{ width: "72%" }} />
+                      <span className="ds-line" style={{ width: "60%" }} />
                     </div>
-                    <div className="h-32 rounded-lg bg-muted-foreground/20" />
-                    <div className="flex justify-end">
-                      <div className="h-8 w-24 rounded-lg bg-primary/80" />
+                    <div className="ds-chips">
+                      <span className="ds-chip">TypeScript</span>
+                      <span className="ds-chip">Design systems</span>
+                      <span className="ds-chip">Mentoring</span>
+                      <span className="ds-chip">Postgres</span>
                     </div>
                   </div>
+                </article>
+
+                <div className="ds-seam">
+                  <span>Tailoring</span>
+                  <span className="ds-seam__line" />
                 </div>
+
+                <article className="ds-panel ds-card--draft">
+                  <div className="ds-panel__bar">
+                    <span className="ds-mono">Draft 01</span>
+                    <span className="ds-mono">Resume + letter</span>
+                  </div>
+                  <div className="ds-panel__body">
+                    <div className="ds-score">
+                      <div className="ds-score__dial">
+                        <svg viewBox="0 0 68 68" role="presentation">
+                          <circle className="ds-score__track" cx="34" cy="34" r="29" />
+                          <circle className="ds-score__value" cx="34" cy="34" r="29" />
+                        </svg>
+                        <span className="ds-score__num">82</span>
+                      </div>
+                      <div className="ds-score__copy">
+                        <p>
+                          Strong match on platform work and mentoring. Lead with
+                          the design-system rebuild.
+                        </p>
+                        <p className="ds-gap">Gap &middot; add Postgres tuning</p>
+                      </div>
+                    </div>
+                  </div>
+                </article>
               </div>
             </div>
           </div>
         </section>
-        <section
-          id="features"
-          className="w-full py-12 md:py-24 lg:py-32 bg-muted"
-        >
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                  Features
-                </h2>
-                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Everything you need to optimize your job search and
-                  application process
-                </p>
+
+        {/* -------------------------------------------------------- Ticker */}
+        <div className="ds-ticker" aria-hidden="true">
+          <div className="ds-ticker__track">
+            {[0, 1].map((copy) => (
+              <div key={copy} className="ds-ticker__item">
+                {TICKER.join("   ·   ")}
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* -------------------------------------------------------- Method */}
+        <section id="method" className="ds-section">
+          <div className="ds-shell ds-shell--ruled">
+            <div className="ds-marker">
+              <span className="ds-marker__no">01</span>
+              <span className="ds-marker__label">Method</span>
+              <span className="ds-marker__line" />
             </div>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-8">
-              <div className="flex flex-col items-center space-y-2 rounded-lg border p-6">
-                <div className="rounded-full bg-primary/10 p-3">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-6 w-6 text-primary"
-                  >
-                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                    <polyline points="14 2 14 8 20 8" />
-                  </svg>
+
+            <div className="ds-section__head ds-reveal">
+              <h2 className="ds-section__title">
+                Three steps, then the part you were avoiding is done.
+              </h2>
+              <p className="ds-section__note">
+                The tedious work in a job search is not finding the posting. It
+                is rewriting the same history forty different ways and keeping
+                track of which version went where.
+              </p>
+            </div>
+
+            <ol className="ds-steps">
+              {STEPS.map((step) => (
+                <li key={step.no} className="ds-step ds-reveal">
+                  <span className="ds-step__no" aria-hidden="true">
+                    {step.no}
+                  </span>
+                  <h3 className="ds-step__title">{step.title}</h3>
+                  <div className="ds-step__body">
+                    <p>{step.copy}</p>
+                    <ul className="ds-step__list">
+                      {step.tags.map((tag) => (
+                        <li key={tag}>{tag}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* ------------------------------------------------------- Toolkit */}
+        <section id="toolkit" className="ds-section">
+          <div className="ds-shell ds-shell--ruled">
+            <div className="ds-marker">
+              <span className="ds-marker__no">02</span>
+              <span className="ds-marker__label">Toolkit</span>
+              <span className="ds-marker__line" />
+            </div>
+
+            <div className="ds-section__head ds-reveal">
+              <h2 className="ds-section__title">
+                Everything the application needs, in one file.
+              </h2>
+            </div>
+
+            <div className="ds-bento">
+              <article className="ds-tile ds-tile--wide ds-reveal">
+                <div className="ds-tile__inner">
+                  <div>
+                    <div className="ds-tile__icon" aria-hidden="true">
+                      <GaugeIcon />
+                    </div>
+                    <h3 className="ds-tile__title" style={{ marginTop: "0.9rem" }}>
+                      Read back against the posting
+                    </h3>
+                    <p className="ds-tile__copy" style={{ marginTop: "0.6rem" }}>
+                      Every draft is scored on what a reviewer checks first:
+                      relevant experience, the skills named in the ad, and how
+                      clearly the two are connected. Gaps are listed so you can
+                      fix them before you send, not after the rejection. Switch
+                      on ATS optimisation and the draft shifts toward phrasing
+                      parsers handle cleanly.
+                    </p>
+                    <ul className="ds-tile__points">
+                      <li>Strength score</li>
+                      <li>Named gaps</li>
+                      <li>ATS optimisation</li>
+                    </ul>
+                  </div>
+
+                  <div className="ds-bars">
+                    {[
+                      { label: "Keywords", value: 91, delay: "0.05s" },
+                      { label: "Experience", value: 84, delay: "0.15s" },
+                      { label: "Skills", value: 78, delay: "0.25s" },
+                      { label: "Clarity", value: 88, delay: "0.35s" },
+                    ].map((row) => (
+                      <div key={row.label} className="ds-bars__row">
+                        <span>{row.label}</span>
+                        <span className="ds-bars__track">
+                          <span
+                            className="ds-bars__fill"
+                            style={{
+                              width: `${row.value}%`,
+                              animationDelay: row.delay,
+                            }}
+                          />
+                        </span>
+                        <span className="ds-bars__num">{row.value}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold">
-                  AI-Powered Resume Generation
-                </h3>
-                <p className="text-sm text-muted-foreground text-center">
-                  Create tailored resumes that highlight your most relevant
-                  skills and experiences for each job.
-                </p>
-              </div>
-              <div className="flex flex-col items-center space-y-2 rounded-lg border p-6">
-                <div className="rounded-full bg-primary/10 p-3">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-6 w-6 text-primary"
-                  >
-                    <path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z" />
-                    <path d="M8 2v4" />
-                    <path d="M16 2v4" />
-                    <path d="M2 10h20" />
-                  </svg>
+              </article>
+
+              <article className="ds-tile ds-reveal">
+                <div className="ds-tile__icon" aria-hidden="true">
+                  <PenIcon />
                 </div>
-                <h3 className="text-xl font-bold">
-                  Personalized Cover Letters
-                </h3>
-                <p className="text-sm text-muted-foreground text-center">
-                  Generate compelling cover letters that sound human-written and
-                  address the specific requirements of each job.
+                <h3 className="ds-tile__title">Cover letters with a pulse</h3>
+                <p className="ds-tile__copy">
+                  Letters that answer the posting in your own register, instead
+                  of four paragraphs of enthusiasm that could be addressed to
+                  anyone.
                 </p>
-              </div>
-              <div className="flex flex-col items-center space-y-2 rounded-lg border p-6">
-                <div className="rounded-full bg-primary/10 p-3">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-6 w-6 text-primary"
-                  >
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                  </svg>
+                <p className="ds-mono ds-tile__meta">Per application</p>
+              </article>
+
+              <article className="ds-tile ds-reveal">
+                <div className="ds-tile__icon" aria-hidden="true">
+                  <GridIcon />
                 </div>
-                <h3 className="text-xl font-bold">Application Tracking</h3>
-                <p className="text-sm text-muted-foreground text-center">
-                  Keep track of all your job applications in one place and never
-                  miss a follow-up opportunity.
+                <h3 className="ds-tile__title">Applications, tracked</h3>
+                <p className="ds-tile__copy">
+                  Every posting, draft and document filed against the company
+                  you sent it to, with a dashboard that shows where the search
+                  actually stands.
                 </p>
+                <p className="ds-mono ds-tile__meta">Dashboard &amp; metrics</p>
+              </article>
+
+              <article className="ds-tile ds-reveal">
+                <div className="ds-tile__icon" aria-hidden="true">
+                  <KeyIcon />
+                </div>
+                <h3 className="ds-tile__title">Your models, your keys</h3>
+                <p className="ds-tile__copy">
+                  Pick OpenAI or Gemini per account and bring your own API key.
+                  Keys are encrypted before they are stored and never leave your
+                  account.
+                </p>
+                <p className="ds-mono ds-tile__meta">Bring your own key</p>
+              </article>
+
+              <article className="ds-tile ds-reveal">
+                <div className="ds-tile__icon" aria-hidden="true">
+                  <PageIcon />
+                </div>
+                <h3 className="ds-tile__title">Typeset PDFs</h3>
+                <p className="ds-tile__copy">
+                  Drafts render into clean, typeset PDFs through the built-in
+                  templates, ready to attach the moment you are happy with them.
+                </p>
+                <p className="ds-mono ds-tile__meta">Export &amp; send</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        {/* ----------------------------------------------------- Questions */}
+        <section id="questions" className="ds-section">
+          <div className="ds-shell ds-shell--ruled">
+            <div className="ds-marker">
+              <span className="ds-marker__no">03</span>
+              <span className="ds-marker__label">Questions</span>
+              <span className="ds-marker__line" />
+            </div>
+
+            <div className="ds-section__head ds-reveal">
+              <h2 className="ds-section__title">Before you sign up.</h2>
+            </div>
+
+            <div className="ds-faq">
+              {FAQ.map((item) => (
+                <details key={item.q} className="ds-faq__item">
+                  <summary className="ds-faq__q">
+                    {item.q}
+                    <span className="ds-faq__sign" aria-hidden="true">
+                      +
+                    </span>
+                  </summary>
+                  <p className="ds-faq__a">{item.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* --------------------------------------------------------- Closer */}
+        <section className="ds-section" style={{ paddingTop: 0 }}>
+          <div className="ds-shell">
+            <div className="ds-closer ds-reveal">
+              <p className="ds-mono">Next opening</p>
+              <h2 className="ds-closer__title">
+                Spend the evening applying, not <span className="ds-em">reformatting</span>.
+              </h2>
+              <p className="ds-closer__note">
+                Set up your profile once and the next application takes minutes.
+                Free to start, and your account is yours to export or delete
+                whenever you want.
+              </p>
+              <div className="ds-closer__cta">
+                <Link href="/auth/register" className="ds-btn ds-btn--signal">
+                  Create your account
+                  <span className="ds-btn__arrow" aria-hidden="true">
+                    &rarr;
+                  </span>
+                </Link>
+                <Link href="/auth/login" className="ds-btn ds-btn--ghost">
+                  I already have one
+                </Link>
               </div>
             </div>
           </div>
         </section>
       </main>
-      <footer className="border-t bg-background py-6 w-full" style={{width:'100%'}}>
-        <div className="w-full max-w-7xl mx-auto flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row px-4 md:px-8">
-          <p className="text-sm text-muted-foreground md:text-base">
-            &copy; {new Date().getFullYear()} Job Search Assistant. All rights reserved.
-          </p>
+
+      <footer className="ds-foot">
+        <div className="ds-shell">
+          <div className="ds-foot__grid">
+            <div>
+              <div className="ds-wordmark">
+                <span className="ds-wordmark__mark" aria-hidden="true">
+                  JS
+                </span>
+                <span className="ds-wordmark__name">Job Search Assistant</span>
+              </div>
+              <p className="ds-foot__blurb">
+                An AI workspace for the part of the job search nobody enjoys:
+                tailoring the same history to one more posting, and remembering
+                where it went.
+              </p>
+            </div>
+
+            <div className="ds-foot__col">
+              <h3>Product</h3>
+              <ul>
+                <li>
+                  <Link href="#method">How it works</Link>
+                </li>
+                <li>
+                  <Link href="#toolkit">Toolkit</Link>
+                </li>
+                <li>
+                  <Link href="#questions">Questions</Link>
+                </li>
+              </ul>
+            </div>
+
+            <div className="ds-foot__col">
+              <h3>Account</h3>
+              <ul>
+                <li>
+                  <Link href="/auth/register">Create an account</Link>
+                </li>
+                <li>
+                  <Link href="/auth/login">Log in</Link>
+                </li>
+                <li>
+                  <Link href="/auth/forgot-password">Reset password</Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="ds-foot__bar">
+            <p className="ds-mono">
+              &copy; {year} Job Search Assistant
+            </p>
+            <p className="ds-mono">Fraunces &middot; Archivo &middot; Space Mono</p>
+          </div>
         </div>
       </footer>
     </div>
+  );
+}
+
+/* --------------------------------------------------------------------- Icons */
+
+const iconProps = {
+  width: 18,
+  height: 18,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.6,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+};
+
+function GaugeIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M12 21a9 9 0 1 1 9-9" />
+      <path d="m12 12 5-3" />
+      <circle cx="12" cy="12" r="1.2" />
+    </svg>
+  );
+}
+
+function PenIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+function GridIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <path d="M14 17.5h7" />
+      <path d="M17.5 14v7" />
+    </svg>
+  );
+}
+
+function KeyIcon() {
+  return (
+    <svg {...iconProps}>
+      <circle cx="7.5" cy="15.5" r="4.5" />
+      <path d="m10.8 12.2 8.7-8.7" />
+      <path d="m17 6 2.5 2.5" />
+    </svg>
+  );
+}
+
+function PageIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M14.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5Z" />
+      <path d="M14 3v5h5" />
+      <path d="M9 13h6" />
+      <path d="M9 17h4" />
+    </svg>
   );
 }
