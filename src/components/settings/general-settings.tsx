@@ -47,9 +47,9 @@ export function GeneralSettings({ user }: GeneralSettingsProps) {
   };
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">General Settings</h1>
-        <p className="text-gray-500 dark:text-gray-400">
+      <div className="mb-7 border-b border-[var(--rule)] pb-5">
+        <h2 className="text-2xl font-semibold tracking-tight">General Settings</h2>
+        <p className="text-muted-foreground">
           Manage your general account settings and preferences
         </p>
       </div>
@@ -66,19 +66,19 @@ export function GeneralSettings({ user }: GeneralSettingsProps) {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-gray-500">Name</p>
+                <p className="text-sm font-medium text-muted-foreground">Name</p>
                 <p className="text-base">{user.name}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Email</p>
+                <p className="text-sm font-medium text-muted-foreground">Email</p>
                 <p className="text-base">{user.email}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Account Type</p>
+                <p className="text-sm font-medium text-muted-foreground">Account Type</p>
                 <p className="text-base capitalize">{user.role.toLowerCase()}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Member Since</p>
+                <p className="text-sm font-medium text-muted-foreground">Member Since</p>
                 <p className="text-base">
                   {new Date(user.createdAt).toLocaleDateString()}
                 </p>

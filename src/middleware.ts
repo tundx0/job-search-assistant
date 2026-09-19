@@ -32,8 +32,15 @@ export async function middleware(request: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-  // Public paths that don't require authentication
-  const publicPaths = ["/", "/auth/login", "/auth/register"];
+  // Public paths that don't require authentication. The password-reset screens
+  // belong here too: a signed-out user is the only one who can reach them.
+  const publicPaths = [
+    "/",
+    "/auth/login",
+    "/auth/register",
+    "/auth/forgot-password",
+    "/auth/reset-password",
+  ];
 
   // Check if the path is public
   const isPublicPath = publicPaths.some(

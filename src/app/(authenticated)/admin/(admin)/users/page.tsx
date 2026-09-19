@@ -88,7 +88,7 @@ export default async function UsersPage({
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Users</h1>
+          <h1 className="page-title">Users</h1>
           <p className="text-muted-foreground">
             Manage and view all users in the system
           </p>
@@ -138,8 +138,8 @@ export default async function UsersPage({
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                         user.role === "ADMIN"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-gray-100 text-gray-800"
+                          ? "chip chip-info"
+                          : "bg-muted text-foreground"
                       }`}
                     >
                       {user.role}

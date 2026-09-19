@@ -390,13 +390,13 @@ export function ApiKeysSettings() {
                 )}
               </div>
               {provider === "openai" && (
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   You can find your OpenAI API key in the{" "}
                   <a
                     href="https://platform.openai.com/api-keys"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
+                    className="text-info hover:underline"
                   >
                     OpenAI dashboard
                   </a>
@@ -404,13 +404,13 @@ export function ApiKeysSettings() {
                 </p>
               )}
               {provider === "google" && (
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   You can find your Google AI API key in the{" "}
                   <a
                     href="https://ai.google.dev/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
+                    className="text-info hover:underline"
                   >
                     Google AI Studio
                   </a>
@@ -418,13 +418,13 @@ export function ApiKeysSettings() {
                 </p>
               )}
               {provider === "anthropic" && (
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   You can find your Anthropic API key in your{" "}
                   <a
                     href="https://console.anthropic.com/account/keys"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
+                    className="text-info hover:underline"
                   >
                     Anthropic console
                   </a>
@@ -432,13 +432,13 @@ export function ApiKeysSettings() {
                 </p>
               )}
               {provider === "deepseek" && (
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   You can find your DeepSeek API key in the{" "}
                   <a
                     href="https://platform.deepseek.com/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
+                    className="text-info hover:underline"
                   >
                     DeepSeek platform
                   </a>
@@ -479,9 +479,9 @@ export function ApiKeysSettings() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">API Keys</h1>
-        <p className="text-gray-500 dark:text-gray-400">
+      <div className="mb-7 border-b border-[var(--rule)] pb-5">
+        <h2 className="text-2xl font-semibold tracking-tight">API Keys</h2>
+        <p className="text-muted-foreground">
           Add your own API keys to use with different AI providers. Your keys
           are encrypted and stored securely.
         </p>

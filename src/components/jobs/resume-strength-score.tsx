@@ -8,21 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  Legend,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  RadialBarChart,
-  RadialBar,
-} from "recharts";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResumeInsight } from "@/types";
 
@@ -39,11 +24,10 @@ export function ResumeStrengthScore({
 }: ResumeStrengthScoreProps) {
   // Get color based on score
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "#10b981"; // Green
-    if (score >= 60) return "#22c55e"; // Light green
-    if (score >= 40) return "#eab308"; // Yellow
-    if (score >= 20) return "#f97316"; // Orange
-    return "#ef4444"; // Red
+    if (score >= 80) return "var(--success)";
+    if (score >= 60) return "var(--primary)";
+    if (score >= 40) return "var(--warning)";
+    return "var(--destructive)";
   };
 
   // Get text based on score
@@ -55,86 +39,41 @@ export function ResumeStrengthScore({
     return "Poor Match";
   };
 
-  // Prepare data for pie chart
-  const pieData = [
-    { name: "Score", value: score },
-    { name: "Gap", value: 100 - score },
-  ];
-
-  // No longer using barData as we have better visualizations
-
-  // Prepare data for radial bar chart
-  const radialData = [
-    {
-      name: "Score",
-      value: score,
-      fill: getScoreColor(score),
-    },
-  ];
-
-  // Prepare comparison data (simulated)
-  const comparisonData = [
-    {
-      name: "Your Resume",
-      value: score,
-      fill: "#3b82f6",
-    },
-    {
-      name: "Average",
-      value: Math.min(Math.max(score - 15, 20), 75), // Simulated average
-      fill: "#94a3b8",
-    },
-    {
-      name: "Top Candidates",
-      value: Math.min(score + 15, 95), // Simulated top candidates
-      fill: "#10b981",
-    },
-  ];
-
-  // Use real missing keywords from insights if available, otherwise use simulation
-  const keywordMatches = insights?.missingKeywords
-    ? insights.missingKeywords.map((keyword: string) => ({
-        keyword,
-        matched: false,
-      }))
-    : [
-        { keyword: "React", matched: Math.random() > 0.3 },
-        { keyword: "TypeScript", matched: Math.random() > 0.3 },
-        { keyword: "Next.js", matched: Math.random() > 0.3 },
-        { keyword: "JavaScript", matched: Math.random() > 0.3 },
-        { keyword: "Node.js", matched: Math.random() > 0.3 },
-        { keyword: "API", matched: Math.random() > 0.3 },
-        { keyword: "Frontend", matched: Math.random() > 0.3 },
-        { keyword: "Backend", matched: Math.random() > 0.3 },
-      ].sort((a, b) => (a.matched === b.matched ? 0 : a.matched ? -1 : 1));
+  // Only report keywords the analysis actually returned. When there are none,
+  // the keyword panels show an empty state rather than invented matches.
+  const keywordMatches: { keyword: string; matched: boolean }[] =
+    insights?.missingKeywords?.map((keyword: string) => ({
+      keyword,
+      matched: false,
+    })) ?? [];
 
   return (
     <Card className="w-full overflow-hidden">
-      <div className="h-2" style={{ backgroundColor: getScoreColor(score) }} />
-      <CardHeader className="pb-0">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+      <div className="h-1" style={{ backgroundColor: getScoreColor(score) }} />
+      <CardHeader className="pb-2">
+        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              Resume Strength Analysis
-              <Badge
-                className="ml-2"
+              Resume strength
+              <span
+                className="chip"
                 style={{
-                  backgroundColor: getScoreColor(score),
-                  color: "white",
+                  borderColor: getScoreColor(score),
+                  color: getScoreColor(score),
                 }}
               >
                 {getScoreText(score)}
-              </Badge>
+              </span>
             </CardTitle>
             <CardDescription className="mt-1">
               How well your resume matches the {jobTitle} position
             </CardDescription>
           </div>
 
-          <div className="flex items-center justify-center w-32 h-32 relative">
+          <div className="relative flex h-24 w-24 flex-none items-center justify-center">
             <div className="absolute inset-0 flex items-center justify-center">
               <div
-                className="text-4xl font-bold"
+                className="font-heading text-2xl font-semibold tabular-nums"
                 style={{ color: getScoreColor(score) }}
               >
                 {score}%
@@ -149,8 +88,8 @@ export function ResumeStrengthScore({
                 cy="50"
                 r="45"
                 fill="none"
-                stroke="#e5e7eb"
-                strokeWidth="10"
+                stroke="var(--muted)"
+                strokeWidth="8"
               />
               <circle
                 cx="50"
@@ -158,7 +97,7 @@ export function ResumeStrengthScore({
                 r="45"
                 fill="none"
                 stroke={getScoreColor(score)}
-                strokeWidth="10"
+                strokeWidth="8"
                 strokeDasharray={`${(2 * Math.PI * 45 * score) / 100} ${
                   (2 * Math.PI * 45 * (100 - score)) / 100
                 }`}
@@ -168,9 +107,9 @@ export function ResumeStrengthScore({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="mt-2 mb-6">
+        <div className="mb-7">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div className="w-full bg-accent rounded-full h-2.5">
               <div
                 className="h-2.5 rounded-full transition-all duration-500 ease-in-out"
                 style={{
@@ -182,115 +121,65 @@ export function ResumeStrengthScore({
           </div>
           <p className="text-sm text-muted-foreground">
             {score >= 80
-              ? "Your resume is an excellent match for this position. You&apos;re well-positioned to stand out to recruiters."
+              ? "Your resume is an excellent match for this position. You’re well-positioned to stand out to recruiters."
               : score >= 60
               ? "Your resume shows a good match with this job. With a few tweaks, you could improve your chances even more."
               : score >= 40
               ? "Your resume has moderate alignment with this position. Consider enhancing key sections to improve your match."
-              : "Your resume needs significant improvements to better match this job&apos;s requirements."}
+              : "Your resume needs significant improvements to better match this job’s requirements."}
           </p>
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="keywords">Keywords</TabsTrigger>
             <TabsTrigger value="improvements">Improvements</TabsTrigger>
-            <TabsTrigger value="insights">AI Insights</TabsTrigger>
+            <TabsTrigger value="insights">AI insights</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div className="h-[200px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                      startAngle={90}
-                      endAngle={-270}
-                    >
-                      <Cell key={`cell-0`} fill={getScoreColor(score)} />
-                      <Cell key={`cell-1`} fill="#e5e7eb" />
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+          <TabsContent value="overview" className="pt-6">
+            <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-[var(--rule)] sm:grid-cols-4">
+              <div className="bg-card p-4">
+                <dt className="label-mono">Match</dt>
+                <dd className="stat-value mt-2" style={{ color: getScoreColor(score) }}>
+                  {score}%
+                </dd>
               </div>
-              <div className="h-[200px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadialBarChart
-                    cx="50%"
-                    cy="50%"
-                    innerRadius="30%"
-                    outerRadius="100%"
-                    barSize={20}
-                    data={radialData}
-                    startAngle={180}
-                    endAngle={0}
-                  >
-                    <RadialBar background dataKey="value" cornerRadius={10} />
-                    <Tooltip />
-                  </RadialBarChart>
-                </ResponsiveContainer>
+              <div className="bg-card p-4">
+                <dt className="label-mono">Strengths</dt>
+                <dd className="stat-value mt-2">{insights?.strengths?.length ?? 0}</dd>
               </div>
-            </div>
-            <div className="text-sm text-muted-foreground mt-2">
-              <p>
-                Your resume has a strength score of <strong>{score}%</strong>{" "}
-                for this position.{" "}
-                {score >= 60
-                  ? "This indicates a strong match with the job requirements."
-                  : score >= 40
-                  ? "Consider enhancing your resume to better match the job requirements."
-                  : "Your resume needs significant improvements to match this job's requirements."}
-              </p>
-            </div>
-          </TabsContent>
+              <div className="bg-card p-4">
+                <dt className="label-mono">To improve</dt>
+                <dd className="stat-value mt-2">
+                  {insights?.improvementAreas?.length ?? 0}
+                </dd>
+              </div>
+              <div className="bg-card p-4">
+                <dt className="label-mono">Missing terms</dt>
+                <dd className="stat-value mt-2">{keywordMatches.length}</dd>
+              </div>
+            </dl>
 
-          <TabsContent value="comparison">
-            <div className="h-[300px] mt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={comparisonData}
-                  layout="vertical"
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <XAxis type="number" domain={[0, 100]} />
-                  <YAxis type="category" dataKey="name" />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="value" radius={[0, 10, 10, 0]}>
-                    {comparisonData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="text-sm text-muted-foreground mt-4">
-              <p>
-                This chart compares your resume strength against estimated
-                averages.
-                {score > comparisonData[1].value
-                  ? " Your resume is performing above average for this position."
-                  : " Your resume is below the average for this position."}
-              </p>
-            </div>
+            <p className="mt-5 text-sm text-muted-foreground">
+              Your resume scores <strong className="text-foreground">{score}%</strong>{" "}
+              against this posting.{" "}
+              {score >= 60
+                ? "That is a strong match with the stated requirements."
+                : score >= 40
+                ? "Tightening the sections below should raise it."
+                : "The gaps below are the ones worth closing first."}
+            </p>
           </TabsContent>
 
           <TabsContent value="keywords">
             <div className="mt-4">
-              <h3 className="font-medium mb-4">Key Terms in Job Description</h3>
+              <h3 className="font-medium mb-4">Key terms in the job description</h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div className="border rounded-lg p-4 bg-green-50">
-                  <h4 className="text-sm font-medium text-green-700 mb-2 flex items-center">
+                <div className="panel-success">
+                  <h4 className="text-sm font-medium text-success mb-2 flex items-center">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-4 w-4 mr-1"
@@ -311,19 +200,15 @@ export function ResumeStrengthScore({
                     {keywordMatches
                       .filter((item) => item.matched)
                       .map((item, index) => (
-                        <Badge
-                          key={index}
-                          variant="default"
-                          className="bg-green-100 text-green-800 hover:bg-green-200"
-                        >
+                        <span key={index} className="chip chip-success">
                           {item.keyword}
-                        </Badge>
+                        </span>
                       ))}
                   </div>
                 </div>
 
-                <div className="border rounded-lg p-4 bg-amber-50">
-                  <h4 className="text-sm font-medium text-amber-700 mb-2 flex items-center">
+                <div className="panel-warning">
+                  <h4 className="text-sm font-medium text-warning mb-2 flex items-center">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-4 w-4 mr-1"
@@ -338,19 +223,15 @@ export function ResumeStrengthScore({
                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                       />
                     </svg>
-                    Missing from Your Resume
+                    Missing from your resume
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {keywordMatches
                       .filter((item) => !item.matched)
                       .map((item, index) => (
-                        <Badge
-                          key={index}
-                          variant="outline"
-                          className="border-amber-200 text-amber-800"
-                        >
+                        <span key={index} className="chip chip-warning">
                           {item.keyword}
-                        </Badge>
+                        </span>
                       ))}
                   </div>
                 </div>
@@ -368,8 +249,8 @@ export function ResumeStrengthScore({
               <h3 className="font-medium mb-4">Improvement Recommendations</h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="border rounded-lg p-4 bg-blue-50">
-                  <h4 className="text-sm font-medium text-blue-700 mb-2 flex items-center">
+                <div className="panel-info">
+                  <h4 className="text-sm font-medium text-info mb-2 flex items-center">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-4 w-4 mr-1"
@@ -386,7 +267,7 @@ export function ResumeStrengthScore({
                     </svg>
                     Content Improvements
                   </h4>
-                  <ul className="space-y-2 text-sm text-blue-800">
+                  <ul className="space-y-2 text-sm text-info">
                     {insights?.contentSuggestions ? (
                       Array.isArray(insights.contentSuggestions) ? (
                         insights.contentSuggestions.map(
@@ -489,8 +370,8 @@ export function ResumeStrengthScore({
                   </ul>
                 </div>
 
-                <div className="border rounded-lg p-4 bg-purple-50">
-                  <h4 className="text-sm font-medium text-purple-700 mb-2 flex items-center">
+                <div className="panel-insight">
+                  <h4 className="text-sm font-medium text-insight mb-2 flex items-center">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-4 w-4 mr-1"
@@ -507,7 +388,7 @@ export function ResumeStrengthScore({
                     </svg>
                     ATS Optimization
                   </h4>
-                  <ul className="space-y-2 text-sm text-purple-800">
+                  <ul className="space-y-2 text-sm text-insight">
                     {insights?.formatSuggestions ? (
                       Array.isArray(insights.formatSuggestions) ? (
                         insights.formatSuggestions.map(
@@ -610,7 +491,7 @@ export function ResumeStrengthScore({
                 </div>
               </div>
 
-              <div className="mt-4 p-4 border rounded-lg bg-gray-50">
+              <div className="mt-4 p-4 border rounded-lg bg-muted">
                 <h4 className="text-sm font-medium mb-2 flex items-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -628,7 +509,7 @@ export function ResumeStrengthScore({
                   </svg>
                   Pro Tip
                 </h4>
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-foreground">
                   Use this app&apos;s AI-powered resume generator to
                   automatically create a tailored resume that matches this job
                   description perfectly.
@@ -644,8 +525,8 @@ export function ResumeStrengthScore({
               {insights ? (
                 <div className="space-y-6">
                   {/* Overall feedback */}
-                  <div className="p-4 border rounded-lg bg-white">
-                    <h4 className="text-sm font-medium mb-2 flex items-center text-blue-700">
+                  <div className="p-4 border rounded-lg bg-card">
+                    <h4 className="text-sm font-medium mb-2 flex items-center text-info">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-4 w-4 mr-1"
@@ -662,7 +543,7 @@ export function ResumeStrengthScore({
                       </svg>
                       Overall Assessment
                     </h4>
-                    <p className="text-sm text-gray-700">
+                    <p className="text-sm text-foreground">
                       {insights.overallFeedback}
                     </p>
                   </div>
@@ -670,8 +551,8 @@ export function ResumeStrengthScore({
                   {/* Strengths and improvement areas */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Strengths */}
-                    <div className="p-4 border rounded-lg bg-green-50">
-                      <h4 className="text-sm font-medium mb-2 flex items-center text-green-700">
+                    <div className="panel-success">
+                      <h4 className="text-sm font-medium mb-2 flex items-center text-success">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-4 w-4 mr-1"
@@ -689,7 +570,7 @@ export function ResumeStrengthScore({
                         Resume Strengths
                       </h4>
                       {insights.strengths && insights.strengths.length > 0 ? (
-                        <ul className="space-y-2 text-sm text-green-800 list-disc pl-5">
+                        <ul className="space-y-2 text-sm text-success list-disc pl-5">
                           {insights.strengths.map(
                             (strength: string, index: number) => (
                               <li key={index}>{strength}</li>
@@ -697,15 +578,15 @@ export function ResumeStrengthScore({
                           )}
                         </ul>
                       ) : (
-                        <p className="text-sm text-gray-700">
+                        <p className="text-sm text-foreground">
                           No specific strengths identified.
                         </p>
                       )}
                     </div>
 
                     {/* Improvement areas */}
-                    <div className="p-4 border rounded-lg bg-amber-50">
-                      <h4 className="text-sm font-medium mb-2 flex items-center text-amber-700">
+                    <div className="panel-warning">
+                      <h4 className="text-sm font-medium mb-2 flex items-center text-warning">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-4 w-4 mr-1"
@@ -724,7 +605,7 @@ export function ResumeStrengthScore({
                       </h4>
                       {insights.improvementAreas &&
                       insights.improvementAreas.length > 0 ? (
-                        <ul className="space-y-2 text-sm text-amber-800 list-disc pl-5">
+                        <ul className="space-y-2 text-sm text-warning list-disc pl-5">
                           {insights.improvementAreas.map(
                             (area: string, index: number) => (
                               <li key={index}>{area}</li>
@@ -732,7 +613,7 @@ export function ResumeStrengthScore({
                           )}
                         </ul>
                       ) : (
-                        <p className="text-sm text-gray-700">
+                        <p className="text-sm text-foreground">
                           No specific improvement areas identified.
                         </p>
                       )}
@@ -740,8 +621,8 @@ export function ResumeStrengthScore({
                   </div>
 
                   {/* Section-specific feedback */}
-                  <div className="p-4 border rounded-lg bg-gray-50">
-                    <h4 className="text-sm font-medium mb-3 flex items-center text-gray-700">
+                  <div className="p-4 border rounded-lg bg-muted">
+                    <h4 className="text-sm font-medium mb-3 flex items-center text-foreground">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-4 w-4 mr-1"
@@ -763,10 +644,10 @@ export function ResumeStrengthScore({
                       {/* Summary feedback */}
                       {insights.summaryFeedback && (
                         <div className="border-b pb-3">
-                          <h5 className="text-xs font-medium mb-1 text-blue-600">
+                          <h5 className="text-xs font-medium mb-1 text-info">
                             Professional Summary
                           </h5>
-                          <p className="text-sm text-gray-700">
+                          <p className="text-sm text-foreground">
                             {insights.summaryFeedback}
                           </p>
                         </div>
@@ -775,10 +656,10 @@ export function ResumeStrengthScore({
                       {/* Experience feedback */}
                       {insights.experienceFeedback && (
                         <div className="border-b pb-3">
-                          <h5 className="text-xs font-medium mb-1 text-blue-600">
+                          <h5 className="text-xs font-medium mb-1 text-info">
                             Work Experience
                           </h5>
-                          <p className="text-sm text-gray-700">
+                          <p className="text-sm text-foreground">
                             {insights.experienceFeedback}
                           </p>
                         </div>
@@ -787,10 +668,10 @@ export function ResumeStrengthScore({
                       {/* Skills feedback */}
                       {insights.skillsFeedback && (
                         <div className="border-b pb-3">
-                          <h5 className="text-xs font-medium mb-1 text-blue-600">
+                          <h5 className="text-xs font-medium mb-1 text-info">
                             Skills
                           </h5>
-                          <p className="text-sm text-gray-700">
+                          <p className="text-sm text-foreground">
                             {insights.skillsFeedback}
                           </p>
                         </div>
@@ -799,10 +680,10 @@ export function ResumeStrengthScore({
                       {/* Education feedback */}
                       {insights.educationFeedback && (
                         <div>
-                          <h5 className="text-xs font-medium mb-1 text-blue-600">
+                          <h5 className="text-xs font-medium mb-1 text-info">
                             Education
                           </h5>
-                          <p className="text-sm text-gray-700">
+                          <p className="text-sm text-foreground">
                             {insights.educationFeedback}
                           </p>
                         </div>
@@ -812,8 +693,8 @@ export function ResumeStrengthScore({
 
                   {/* Skill gaps */}
                   {insights.skillGaps && insights.skillGaps.length > 0 && (
-                    <div className="p-4 border rounded-lg bg-purple-50">
-                      <h4 className="text-sm font-medium mb-2 flex items-center text-purple-700">
+                    <div className="panel-insight">
+                      <h4 className="text-sm font-medium mb-2 flex items-center text-insight">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-4 w-4 mr-1"
@@ -830,7 +711,7 @@ export function ResumeStrengthScore({
                         </svg>
                         Skill Gaps
                       </h4>
-                      <ul className="space-y-2 text-sm text-purple-800 list-disc pl-5">
+                      <ul className="space-y-2 text-sm text-insight list-disc pl-5">
                         {insights.skillGaps.map(
                           (skill: string, index: number) => (
                             <li key={index}>{skill}</li>
@@ -841,8 +722,8 @@ export function ResumeStrengthScore({
                   )}
                 </div>
               ) : (
-                <div className="p-4 border rounded-lg bg-gray-50">
-                  <p className="text-sm text-gray-700">
+                <div className="p-4 border rounded-lg bg-muted">
+                  <p className="text-sm text-foreground">
                     Detailed AI insights are not available. Click the
                     &quot;Calculate Score&quot; button to generate detailed
                     insights about your resume&apos;s match with this job.

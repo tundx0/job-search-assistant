@@ -56,7 +56,7 @@ export default function AdminSettingsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Admin Settings</h1>
+        <h1 className="page-title">Admin settings</h1>
         <p className="text-muted-foreground">
           Configure system settings and preferences
         </p>

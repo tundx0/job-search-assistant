@@ -158,7 +158,7 @@ export function EducationModal({
                   name="current"
                   checked={isCurrent}
                   onChange={handleCheckboxChange}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 />
                 <Label htmlFor="current" className="text-sm font-normal">
                   I am currently studying here

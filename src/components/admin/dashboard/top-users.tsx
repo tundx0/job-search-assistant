@@ -45,7 +45,7 @@ export function TopUsers({ metrics }: TopUsersProps) {
             <Legend />
             <Bar 
               dataKey="applicationCount" 
-              fill="#8884d8" 
+              fill="var(--chart-1)" 
               name="Applications"
             />
           </BarChart>

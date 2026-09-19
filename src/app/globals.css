@@ -4,9 +4,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-inter: var(--font-inter);
-  --font-heading: var(--font-merriweather);
-  --font-body: var(--font-montserrat);
+  --font-heading: var(--font-display);
+  --font-sans: var(--font-body-face);
+  --font-mono: var(--font-mono-face);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -24,6 +24,13 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-insight: var(--insight);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -42,142 +49,298 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* Apply fonts to elements */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-heading);
-  font-weight: 600;
-  letter-spacing: -0.025em;
-  line-height: 1.2;
-}
-
-p,
-span,
-div,
-li,
-input,
-button {
-  font-family: var(--font-body);
-}
-
-/* Specific heading styles */
-h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-}
-
-h2 {
-  font-size: 2rem;
-  margin-bottom: 1.25rem;
-}
-
-h3 {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-/* Paragraph styles */
-p {
-  font-size: 1rem;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-}
-
-/* Form elements */
-input,
-textarea,
-select {
-  font-family: var(--font-body);
-  font-size: 1rem;
-}
-
-/* Buttons */
-button,
-.button {
-  font-family: var(--font-body);
-  font-weight: 500;
-  letter-spacing: 0.01em;
-}
+/* ==========================================================================
+   Theme — the "dossier" palette shared with the landing page: a warm ink
+   ground, bone text and a vermilion signal accent, with ochre for data.
+   ========================================================================== */
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+
+  /* Paper mode */
+  --background: oklch(0.982 0.005 85);
+  --foreground: oklch(0.205 0.012 60);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.205 0.012 60);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --popover-foreground: oklch(0.205 0.012 60);
+  --primary: oklch(0.56 0.183 36);
+  --primary-foreground: oklch(0.99 0.008 85);
+  --secondary: oklch(0.955 0.008 80);
+  --secondary-foreground: oklch(0.28 0.012 60);
+  --muted: oklch(0.955 0.008 80);
+  --muted-foreground: oklch(0.45 0.012 65);
+  --accent: oklch(0.945 0.02 60);
+  --accent-foreground: oklch(0.28 0.012 60);
+  --destructive: oklch(0.505 0.19 27);
+  --destructive-foreground: oklch(0.99 0.008 85);
+  --success: oklch(0.47 0.11 155);
+  --success-foreground: oklch(0.99 0.008 85);
+  --warning: oklch(0.48 0.1 75);
+  --warning-foreground: oklch(0.99 0.008 85);
+  --info: oklch(0.46 0.09 225);
+  --insight: oklch(0.45 0.13 305);
+  --border: oklch(0.885 0.01 75);
+  --input: oklch(0.885 0.01 75);
+  --ring: oklch(0.56 0.183 36);
+
+  --chart-1: oklch(0.56 0.183 36);
+  --chart-2: oklch(0.62 0.115 88);
+  --chart-3: oklch(0.5 0.09 200);
+  --chart-4: oklch(0.52 0.12 155);
+  --chart-5: oklch(0.45 0.13 300);
+
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.205 0.012 60);
+  --sidebar-primary: oklch(0.56 0.183 36);
+  --sidebar-primary-foreground: oklch(0.99 0.008 85);
+  --sidebar-accent: oklch(0.955 0.008 80);
+  --sidebar-accent-foreground: oklch(0.28 0.012 60);
+  --sidebar-border: oklch(0.885 0.01 75);
+  --sidebar-ring: oklch(0.56 0.183 36);
+
+  /* Shared surface effects */
+  --rule: oklch(0.205 0.012 60 / 0.1);
+  --rule-soft: oklch(0.205 0.012 60 / 0.06);
+  --elevate: 0 1px 2px oklch(0.205 0.012 60 / 0.06),
+    0 8px 24px oklch(0.205 0.012 60 / 0.05);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Ink mode */
+  --background: oklch(0.155 0.008 60);
+  --foreground: oklch(0.945 0.012 85);
+  --card: oklch(0.196 0.009 62);
+  --card-foreground: oklch(0.945 0.012 85);
+  --popover: oklch(0.205 0.009 62);
+  --popover-foreground: oklch(0.945 0.012 85);
+  --primary: oklch(0.7 0.183 38);
+  --primary-foreground: oklch(0.16 0.02 40);
+  --secondary: oklch(0.255 0.009 62);
+  --secondary-foreground: oklch(0.945 0.012 85);
+  --muted: oklch(0.245 0.009 62);
+  --muted-foreground: oklch(0.755 0.012 80);
+  --accent: oklch(0.28 0.02 50);
+  --accent-foreground: oklch(0.945 0.012 85);
+  --destructive: oklch(0.65 0.19 25);
+  --destructive-foreground: oklch(0.16 0.02 40);
+  --success: oklch(0.72 0.14 155);
+  --success-foreground: oklch(0.16 0.02 40);
+  --warning: oklch(0.82 0.118 88);
+  --warning-foreground: oklch(0.16 0.02 40);
+  --info: oklch(0.72 0.1 225);
+  --insight: oklch(0.74 0.12 305);
+  --border: oklch(1 0 0 / 0.13);
+  --input: oklch(1 0 0 / 0.16);
+  --ring: oklch(0.7 0.183 38);
+
+  --chart-1: oklch(0.7 0.183 38);
+  --chart-2: oklch(0.82 0.118 88);
+  --chart-3: oklch(0.68 0.1 210);
+  --chart-4: oklch(0.72 0.14 155);
+  --chart-5: oklch(0.68 0.14 310);
+
+  --sidebar: oklch(0.196 0.009 62);
+  --sidebar-foreground: oklch(0.945 0.012 85);
+  --sidebar-primary: oklch(0.7 0.183 38);
+  --sidebar-primary-foreground: oklch(0.16 0.02 40);
+  --sidebar-accent: oklch(0.255 0.009 62);
+  --sidebar-accent-foreground: oklch(0.945 0.012 85);
+  --sidebar-border: oklch(1 0 0 / 0.13);
+  --sidebar-ring: oklch(0.7 0.183 38);
+
+  --rule: oklch(1 0 0 / 0.13);
+  --rule-soft: oklch(1 0 0 / 0.07);
+  --elevate: 0 1px 2px oklch(0 0 0 / 0.4), 0 12px 32px oklch(0 0 0 / 0.35);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-body-face), ui-sans-serif, system-ui, sans-serif;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Headings carry the display face. Sizes belong to the components that use
+     them, so nothing here sets font-size or margins. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display), ui-serif, Georgia, serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+}
+
+/* ==========================================================================
+   App utilities — the handful of repeating patterns across product pages.
+   ========================================================================== */
+
+@layer components {
+  /* Monospace metadata label: section markers, table headers, field labels. */
+  .label-mono {
+    font-family: var(--font-mono-face), ui-monospace, monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  /* Page title block at the top of every product page. */
+  .page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem 1.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .page-title {
+    font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+
+  .page-subtitle {
+    margin-top: 0.5rem;
+    max-width: 52ch;
+    color: var(--muted-foreground);
+  }
+
+  /* Section marker: index + label + hairline, as on the landing page. */
+  .section-marker {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .section-marker::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  /* Hairline-separated statistic, used in metric rows. */
+  .stat-value {
+    font-family: var(--font-display), serif;
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .hairline {
+    height: 1px;
+    background: var(--rule);
+  }
+}
+
+/* ==========================================================================
+   Semantic panels — tinted callouts that hold up in both themes. Each one
+   mixes its own token with the page ground rather than a fixed pastel.
+   ========================================================================== */
+
+@layer components {
+  .panel-success,
+  .panel-warning,
+  .panel-info,
+  .panel-insight,
+  .panel-danger {
+    border-radius: var(--radius-lg);
+    border: 1px solid;
+    padding: 1rem 1.15rem;
+  }
+
+  .panel-success {
+    border-color: color-mix(in oklch, var(--success), transparent 72%);
+    background: color-mix(in oklch, var(--success), var(--card) 92%);
+  }
+
+  .panel-warning {
+    border-color: color-mix(in oklch, var(--warning), transparent 72%);
+    background: color-mix(in oklch, var(--warning), var(--card) 92%);
+  }
+
+  .panel-info {
+    border-color: color-mix(in oklch, var(--info), transparent 72%);
+    background: color-mix(in oklch, var(--info), var(--card) 92%);
+  }
+
+  .panel-insight {
+    border-color: color-mix(in oklch, var(--insight), transparent 72%);
+    background: color-mix(in oklch, var(--insight), var(--card) 92%);
+  }
+
+  .panel-danger {
+    border-color: color-mix(in oklch, var(--destructive), transparent 72%);
+    background: color-mix(in oklch, var(--destructive), var(--card) 92%);
+  }
+
+  /* Inline status chip, sized to sit in tables and card headers. */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid;
+    border-radius: 0.375rem;
+    padding: 0.15rem 0.5rem;
+    font-family: var(--font-mono-face), monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .chip-success {
+    border-color: color-mix(in oklch, var(--success), transparent 65%);
+    background: color-mix(in oklch, var(--success), transparent 88%);
+    color: var(--success);
+  }
+
+  .chip-warning {
+    border-color: color-mix(in oklch, var(--warning), transparent 65%);
+    background: color-mix(in oklch, var(--warning), transparent 88%);
+    color: var(--warning);
+  }
+
+  .chip-danger {
+    border-color: color-mix(in oklch, var(--destructive), transparent 65%);
+    background: color-mix(in oklch, var(--destructive), transparent 88%);
+    color: var(--destructive);
+  }
+
+  .chip-info {
+    border-color: color-mix(in oklch, var(--info), transparent 65%);
+    background: color-mix(in oklch, var(--info), transparent 88%);
+    color: var(--info);
+  }
+
+  .chip-neutral {
+    border-color: var(--border);
+    background: var(--muted);
+    color: var(--muted-foreground);
   }
 }

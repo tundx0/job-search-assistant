@@ -234,26 +234,35 @@ export default function TemplatesPage() {
   };
 
   return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-6">PDF Template Editor</h1>
+    <div className="space-y-8">
+      <header className="page-head">
+        <div>
+          <p className="label-mono">Documents</p>
+          <h1 className="page-title mt-2">Template editor</h1>
+          <p className="page-subtitle">
+            Preview how your resume and cover letter typeset before you export
+            them as PDFs.
+          </p>
+        </div>
+      </header>
 
-      <Tabs defaultValue="resume" onValueChange={setActiveTab} className="mb-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="resume">Resume Template</TabsTrigger>
-          <TabsTrigger value="coverLetter">Cover Letter Template</TabsTrigger>
+      <Tabs defaultValue="resume" onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="resume">Resume template</TabsTrigger>
+          <TabsTrigger value="coverLetter">Cover letter template</TabsTrigger>
         </TabsList>
       </Tabs>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-3">
         <Card className="md:col-span-1">
           <CardHeader>
             <CardTitle>Content Source</CardTitle>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="text" className="mb-6">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="text">Text Input</TabsTrigger>
-                <TabsTrigger value="json">JSON Input</TabsTrigger>
+              <TabsList>
+                <TabsTrigger value="text">Text</TabsTrigger>
+                <TabsTrigger value="json">JSON</TabsTrigger>
               </TabsList>
 
               <TabsContent value="text" className="space-y-4 pt-4">
@@ -287,11 +296,11 @@ export default function TemplatesPage() {
                     onChange={(e) => handleJsonChange(e.target.value)}
                     placeholder="Enter your JSON content here..."
                     className={`min-h-[300px] ${
-                      !jsonValid ? "border-red-500" : ""
+                      !jsonValid ? "border-destructive" : ""
                     }`}
                   />
                   {!jsonValid && (
-                    <p className="text-red-500 text-sm">{jsonError}</p>
+                    <p className="text-destructive text-sm">{jsonError}</p>
                   )}
                 </div>
                 {jsonValid && jsonInput && (

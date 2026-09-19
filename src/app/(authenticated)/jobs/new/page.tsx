@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 
 const jobSubmissionSchema = z.object({
@@ -82,12 +83,19 @@ export default function NewJobPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold tracking-tight mb-6">
-        New Job Application
-      </h1>
+    <div className="mx-auto max-w-2xl space-y-8">
+      <header className="page-head">
+        <div>
+          <p className="label-mono">New application</p>
+          <h1 className="page-title mt-2">Drop in the job</h1>
+          <p className="page-subtitle">
+            Paste the posting and we will draft a tailored resume and cover
+            letter from your profile, then score the result against it.
+          </p>
+        </div>
+      </header>
 
-      <div className="rounded-lg border bg-card p-6">
+      <div className="rounded-xl border border-border bg-card p-6 sm:p-7">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -95,7 +103,7 @@ export default function NewJobPage() {
               name="jobTitle"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Job Title</FormLabel>
+                  <FormLabel>Job title</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Software Engineer"
@@ -113,7 +121,7 @@ export default function NewJobPage() {
               name="companyName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Company Name</FormLabel>
+                  <FormLabel>Company name</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Acme Inc."
@@ -131,11 +139,11 @@ export default function NewJobPage() {
               name="jobDescription"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Job Description</FormLabel>
+                  <FormLabel>Job description</FormLabel>
                   <FormControl>
-                    <textarea
-                      className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      placeholder="Paste the full job description here..."
+                    <Textarea
+                      className="min-h-[15rem]"
+                      placeholder="Paste the full job description here…"
                       {...field}
                       disabled={isSubmitting}
                     />

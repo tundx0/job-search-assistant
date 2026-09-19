@@ -168,16 +168,16 @@ export function AiModelSettings() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">AI Model Settings</h1>
-        <p className="text-gray-500 dark:text-gray-400">
+      <div className="mb-7 border-b border-[var(--rule)] pb-5">
+        <h2 className="text-2xl font-semibold tracking-tight">AI Model Settings</h2>
+        <p className="text-muted-foreground">
           Choose which AI provider and model to use for generating resumes and
           cover letters.
         </p>
@@ -209,7 +209,7 @@ export function AiModelSettings() {
                     className="flex flex-col cursor-pointer"
                   >
                     <span className="font-medium">{providerName(provider)}</span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-muted-foreground">
                       {providerDescription(provider)}
                     </span>
                   </Label>
@@ -241,7 +241,7 @@ export function AiModelSettings() {
                     className="flex flex-col cursor-pointer"
                   >
                     <span className="font-medium">{model.name}</span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-muted-foreground">
                       {model.description}
                     </span>
                   </Label>

@@ -38,8 +38,8 @@ export function UserCharts({ metrics }: UserChartsProps) {
             <Area
               type="monotone"
               dataKey="count"
-              stroke="#8884d8"
-              fill="#8884d8"
+              stroke="var(--chart-1)"
+              fill="var(--chart-1)"
               name="New Users"
             />
           </AreaChart>

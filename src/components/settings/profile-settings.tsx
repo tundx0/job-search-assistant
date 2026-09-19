@@ -75,9 +75,9 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Profile Settings</h1>
-        <p className="text-gray-500 dark:text-gray-400">
+      <div className="mb-7 border-b border-[var(--rule)] pb-5">
+        <h2 className="text-2xl font-semibold tracking-tight">Profile Settings</h2>
+        <p className="text-muted-foreground">
           Update your personal information and profile details
         </p>
       </div>

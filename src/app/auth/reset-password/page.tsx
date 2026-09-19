@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { AuthHeader } from "@/components/auth/auth-header";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -127,37 +128,34 @@ export default function ResetPasswordPage() {
 
   if (isValidating) {
     return (
-      <div className="flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center px-4 py-8 sm:py-12">
-        <Card className="w-full max-w-md mx-auto">
+      <Card>
           <CardHeader>
             <CardTitle className="text-xl sm:text-2xl">Validating reset token</CardTitle>
-            <CardDescription className="text-sm sm:text-base">
+            <CardDescription >
               Please wait while we validate your reset token...
             </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center py-4 sm:py-6">
             <div className="h-6 w-6 sm:h-8 sm:w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
           </CardContent>
-        </Card>
-      </div>
+      </Card>
     );
   }
 
   if (!isValidToken) {
     return (
-      <div className="flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center px-4 py-8 sm:py-12">
-        <Card className="w-full max-w-md mx-auto">
+      <Card>
           <CardHeader>
             <CardTitle className="text-xl sm:text-2xl">Invalid Reset Link</CardTitle>
-            <CardDescription className="text-sm sm:text-base">
+            <CardDescription >
               The password reset link is invalid or has expired.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle className="text-sm sm:text-base">Error</AlertTitle>
-              <AlertDescription className="text-xs sm:text-sm">
+              <AlertTitle >Error</AlertTitle>
+              <AlertDescription >
                 {tokenError || "Your password reset link is invalid or has expired. Please request a new one."}
               </AlertDescription>
             </Alert>
@@ -171,18 +169,16 @@ export default function ResetPasswordPage() {
               Request new reset link
             </Button>
           </CardFooter>
-        </Card>
-      </div>
+      </Card>
     );
   }
 
   if (isSuccess) {
     return (
-      <div className="flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center px-4 py-8 sm:py-12">
-        <Card className="w-full max-w-md mx-auto">
+      <Card>
           <CardHeader>
             <CardTitle className="text-xl sm:text-2xl">Password Reset Successful</CardTitle>
-            <CardDescription className="text-sm sm:text-base">
+            <CardDescription >
               Your password has been reset successfully.
             </CardDescription>
           </CardHeader>
@@ -200,42 +196,36 @@ export default function ResetPasswordPage() {
               Go to login
             </Button>
           </CardFooter>
-        </Card>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center px-4 py-8 sm:py-12">
-      <div className="w-full max-w-md mx-auto">
-        <h2 className="text-center text-2xl sm:text-3xl font-bold tracking-tight">
-          Reset your password
-        </h2>
-        <p className="mt-2 text-center text-xs sm:text-sm text-muted-foreground">
-          Enter your new password below
-        </p>
-      </div>
+    <>
+      <AuthHeader kicker="Password reset" title="Choose a new password">
+        Enter the password you want to use from now on.
+      </AuthHeader>
 
-      <div className="mt-6 sm:mt-8 w-full max-w-md mx-auto">
-        <div className="bg-card px-4 sm:px-6 py-6 sm:py-8 shadow rounded-lg">
+      <div>
+        <div>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm sm:text-base">New Password</FormLabel>
+                    <FormLabel >New Password</FormLabel>
                     <FormControl>
                       <Input 
                         type="password" 
                         placeholder="••••••••" 
                         {...field} 
                         disabled={isLoading}
-                        className="text-sm sm:text-base"
+                        
                       />
                     </FormControl>
-                    <FormMessage className="text-xs sm:text-sm" />
+                    <FormMessage  />
                   </FormItem>
                 )}
               />
@@ -245,17 +235,17 @@ export default function ResetPasswordPage() {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm sm:text-base">Confirm New Password</FormLabel>
+                    <FormLabel >Confirm New Password</FormLabel>
                     <FormControl>
                       <Input 
                         type="password" 
                         placeholder="••••••••" 
                         {...field} 
                         disabled={isLoading}
-                        className="text-sm sm:text-base"
+                        
                       />
                     </FormControl>
-                    <FormMessage className="text-xs sm:text-sm" />
+                    <FormMessage  />
                   </FormItem>
                 )}
               />
@@ -278,6 +268,6 @@ export default function ResetPasswordPage() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

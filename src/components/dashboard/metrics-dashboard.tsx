@@ -54,15 +54,39 @@ interface MetricsDashboardProps {
   highestScore: number;
 }
 
-// Colors for charts
-const COLORS = ['#10b981', '#22c55e', '#eab308', '#f97316', '#ef4444', '#8b5cf6', '#3b82f6'];
+// Chart colors come from the theme so they track light and dark mode.
+const COLORS = [
+  'var(--chart-1)',
+  'var(--chart-2)',
+  'var(--chart-3)',
+  'var(--chart-4)',
+  'var(--chart-5)',
+];
 const STATUS_COLORS = {
-  submitted: '#10b981',
-  pending: '#eab308',
-  rejected: '#ef4444',
-  interview: '#3b82f6',
-  offer: '#8b5cf6',
+  submitted: 'var(--chart-3)',
+  pending: 'var(--chart-2)',
+  rejected: 'var(--destructive)',
+  interviewing: 'var(--chart-5)',
+  interview: 'var(--chart-5)',
+  accepted: 'var(--success)',
+  offer: 'var(--success)',
 };
+
+const AXIS = { fontSize: 10, fill: 'var(--muted-foreground)' } as const;
+const GRID = 'var(--rule)';
+const TOOLTIP_STYLE = {
+  fontSize: '11px',
+  background: 'var(--popover)',
+  border: '1px solid var(--border)',
+  borderRadius: '0.5rem',
+  color: 'var(--popover-foreground)',
+} as const;
+
+/** Percentage of a total, guarding the empty-account case. */
+function shareOfTotal(part: number, total: number) {
+  if (!total) return 0;
+  return Math.round((part / total) * 100);
+}
 
 export function MetricsDashboard({
   scoreData,
@@ -89,16 +113,20 @@ export function MetricsDashboard({
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <Card className="shadow-md">
-        <CardHeader className="pb-1 sm:pb-2">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
-            <CardTitle className="text-lg sm:text-xl font-bold">Application Metrics</CardTitle>
-            <div className="flex space-x-1 sm:space-x-2 self-end sm:self-auto">
+    <div>
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+            <div>
+              <CardTitle>Application metrics</CardTitle>
+              <CardDescription className="mt-1.5">
+                Your application progress and how your drafts are scoring
+              </CardDescription>
+            </div>
+            <div className="flex gap-1.5 self-end sm:self-auto">
               <Button 
                 variant={timeRange === 'week' ? 'default' : 'outline'} 
                 size="sm"
-                className="text-xs h-7 px-2 sm:h-8 sm:px-3 sm:text-sm"
                 onClick={() => setTimeRange('week')}
               >
                 Week
@@ -106,7 +134,6 @@ export function MetricsDashboard({
               <Button 
                 variant={timeRange === 'month' ? 'default' : 'outline'} 
                 size="sm"
-                className="text-xs h-7 px-2 sm:h-8 sm:px-3 sm:text-sm"
                 onClick={() => setTimeRange('month')}
               >
                 Month
@@ -114,75 +141,71 @@ export function MetricsDashboard({
               <Button 
                 variant={timeRange === 'year' ? 'default' : 'outline'} 
                 size="sm"
-                className="text-xs h-7 px-2 sm:h-8 sm:px-3 sm:text-sm"
                 onClick={() => setTimeRange('year')}
               >
                 Year
               </Button>
             </div>
           </div>
-          <CardDescription className="text-xs sm:text-sm">
-            Track your job application progress and resume performance
-          </CardDescription>
         </CardHeader>
-        
-        <CardContent className="p-3 sm:p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
-            <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg shadow-sm border">
-              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Total Applications</div>
-              <div className="text-lg sm:text-2xl font-bold mt-0.5 sm:mt-1">{totalApplications}</div>
-              <div className="flex items-center mt-1 sm:mt-2">
-                <CalendarDays className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 mr-1" />
-                <span className="text-[10px] sm:text-xs text-gray-500">All time</span>
-              </div>
+
+        <CardContent>
+          <dl className="mb-8 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-[var(--rule)] md:grid-cols-4">
+            <div className="bg-card p-4 sm:p-5">
+              <dt className="label-mono">Total applications</dt>
+              <dd className="stat-value mt-2">{totalApplications}</dd>
+              <p className="mt-2 flex items-center gap-1.5 text-[0.6875rem] text-muted-foreground">
+                <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+                All time
+              </p>
             </div>
-            
-            <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg shadow-sm border">
-              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Submitted</div>
-              <div className="text-lg sm:text-2xl font-bold mt-0.5 sm:mt-1">{submittedApplications}</div>
-              <div className="flex items-center mt-1 sm:mt-2">
-                <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 mr-1" />
-                <span className="text-[10px] sm:text-xs text-green-500">{Math.round((submittedApplications / totalApplications) * 100)}% of total</span>
-              </div>
+
+            <div className="bg-card p-4 sm:p-5">
+              <dt className="label-mono">Submitted</dt>
+              <dd className="stat-value mt-2">{submittedApplications}</dd>
+              <p className="mt-2 flex items-center gap-1.5 text-[0.6875rem] text-success">
+                <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
+                {shareOfTotal(submittedApplications, totalApplications)}% of total
+              </p>
             </div>
-            
-            <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg shadow-sm border">
-              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Pending</div>
-              <div className="text-lg sm:text-2xl font-bold mt-0.5 sm:mt-1">{pendingApplications}</div>
-              <div className="flex items-center mt-1 sm:mt-2">
-                <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500 mr-1" />
-                <span className="text-[10px] sm:text-xs text-yellow-500">{Math.round((pendingApplications / totalApplications) * 100)}% of total</span>
-              </div>
+
+            <div className="bg-card p-4 sm:p-5">
+              <dt className="label-mono">Pending</dt>
+              <dd className="stat-value mt-2">{pendingApplications}</dd>
+              <p className="mt-2 flex items-center gap-1.5 text-[0.6875rem] text-warning">
+                <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" />
+                {shareOfTotal(pendingApplications, totalApplications)}% of total
+              </p>
             </div>
-            
-            <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg shadow-sm border">
-              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Average Match Score</div>
-              <div className="text-lg sm:text-2xl font-bold mt-0.5 sm:mt-1">{averageScore}%</div>
-              <div className="flex items-center mt-1 sm:mt-2">
-                <PieChartIcon className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500 mr-1" />
-                <span className="text-[10px] sm:text-xs text-blue-500">Highest: {highestScore}%</span>
-              </div>
+
+            <div className="bg-card p-4 sm:p-5">
+              <dt className="label-mono">Average match</dt>
+              <dd className="stat-value mt-2">{averageScore}%</dd>
+              <p className="mt-2 flex items-center gap-1.5 text-[0.6875rem] text-info">
+                <PieChartIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                Highest: {highestScore}%
+              </p>
             </div>
-          </div>
-          
+          </dl>
+
           <Tabs defaultValue="scores" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 h-9 sm:h-10">
-              <TabsTrigger value="scores" className="text-xs sm:text-sm">Resume Scores</TabsTrigger>
-              <TabsTrigger value="applications" className="text-xs sm:text-sm">Applications</TabsTrigger>
-              <TabsTrigger value="insights" className="text-xs sm:text-sm">Insights</TabsTrigger>
+            <TabsList className="w-full">
+              <TabsTrigger value="scores">Resume scores</TabsTrigger>
+              <TabsTrigger value="applications">Applications</TabsTrigger>
+              <TabsTrigger value="insights">Insights</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="scores" className="pt-2 sm:pt-4">
+            <TabsContent value="scores" className="pt-6">
               <div className="h-60 sm:h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={filteredScoreData}
                     margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
                     <XAxis 
                       dataKey="date" 
-                      tick={{ fontSize: 10 }}
+                      tick={AXIS}
                       tickFormatter={(value) => {
                         const date = new Date(value);
                         return `${date.getMonth() + 1}/${date.getDate()}`;
@@ -190,7 +213,7 @@ export function MetricsDashboard({
                     />
                     <YAxis 
                       domain={[0, 100]} 
-                      tick={{ fontSize: 10 }}
+                      tick={AXIS}
                     />
                     <Tooltip
                       labelFormatter={(value) => {
@@ -201,57 +224,57 @@ export function MetricsDashboard({
                         `${value}%`, 
                         `${props.payload.jobTitle}`
                       ]}
-                      contentStyle={{ fontSize: '11px' }}
+                      contentStyle={TOOLTIP_STYLE}
                     />
                     <Line 
                       type="monotone" 
                       dataKey="score" 
-                      stroke="#10b981" 
+                      stroke="var(--chart-1)" 
                       strokeWidth={2}
-                      dot={{ r: 3 }}
+                      dot={{ r: 3, fill: 'var(--chart-1)' }}
                       activeDot={{ r: 5 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-              <div className="text-[10px] sm:text-xs text-center text-gray-500 mt-1 sm:mt-2">
-                Resume scores over time - higher is better
-              </div>
+              <p className="label-mono mt-3 text-center">
+                Resume scores over time &mdash; higher is better
+              </p>
             </TabsContent>
             
-            <TabsContent value="applications" className="pt-2 sm:pt-4">
+            <TabsContent value="applications" className="pt-6">
               <div className="h-60 sm:h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
                     data={filteredApplicationsByMonth}
                     margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" tick={{ fontSize: 10 }} />
-                    <YAxis tick={{ fontSize: 10 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
+                    <XAxis dataKey="month" tick={AXIS} />
+                    <YAxis tick={AXIS} />
                     <Tooltip
                       formatter={(value) => [value, 'Applications']}
-                      contentStyle={{ fontSize: '11px' }}
+                      contentStyle={TOOLTIP_STYLE}
                     />
                     <Area
                       type="monotone"
                       dataKey="count"
-                      stroke="#3b82f6"
-                      fill="#3b82f6"
+                      stroke="var(--chart-3)"
+                      fill="var(--chart-3)"
                       fillOpacity={0.2}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-              <div className="text-[10px] sm:text-xs text-center text-gray-500 mt-1 sm:mt-2">
-                Applications submitted by month
-              </div>
+              <p className="label-mono mt-3 text-center">
+                Applications by month
+              </p>
             </TabsContent>
             
-            <TabsContent value="insights" className="pt-2 sm:pt-4">
+            <TabsContent value="insights" className="pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <h4 className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">Application Status</h4>
+                  <h4 className="label-mono mb-3">Application status</h4>
                   <div className="h-48 sm:h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -273,7 +296,7 @@ export function MetricsDashboard({
                             />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value, _unused, props) => [`${value} applications`, props.payload.status]} contentStyle={{ fontSize: '11px' }} />
+                        <Tooltip formatter={(value, _unused, props) => [`${value} applications`, props.payload.status]} contentStyle={TOOLTIP_STYLE} />
                         <Legend iconSize={8} wrapperStyle={{ fontSize: '10px' }} />
                       </PieChart>
                     </ResponsiveContainer>
@@ -281,7 +304,7 @@ export function MetricsDashboard({
                 </div>
                 
                 <div>
-                  <h4 className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">Top Skill Gaps</h4>
+                  <h4 className="label-mono mb-3">Top skill gaps</h4>
                   <div className="h-48 sm:h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
@@ -289,16 +312,16 @@ export function MetricsDashboard({
                         layout="vertical"
                         margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                       >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" tick={{ fontSize: 10 }} />
+                        <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
+                        <XAxis type="number" tick={AXIS} />
                         <YAxis 
                           dataKey="skill" 
                           type="category" 
                           width={80}
-                          tick={{ fontSize: 10 }}
+                          tick={AXIS}
                         />
-                        <Tooltip formatter={(value) => [`${value} occurrences`, 'Frequency']} contentStyle={{ fontSize: '11px' }} />
-                        <Bar dataKey="count" fill="#ef4444" />
+                        <Tooltip formatter={(value) => [`${value} occurrences`, 'Frequency']} contentStyle={TOOLTIP_STYLE} />
+                        <Bar dataKey="count" fill="var(--chart-2)" radius={[0, 4, 4, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
