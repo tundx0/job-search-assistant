@@ -330,7 +330,7 @@ export function JobDetail({ jobApplication }: JobDetailProps) {
     const title =
       documentType === "resume"
         ? `Resume - ${jobApplication.jobTitle} at ${jobApplication.companyName}`
-        : `Cover Letter - ${jobApplication.jobTitle} at ${jobApplication.companyName}`;
+        : `Cover letter - ${jobApplication.jobTitle} at ${jobApplication.companyName}`;
 
     const printWindow = window.open("", "_blank");
 
@@ -489,7 +489,7 @@ export function JobDetail({ jobApplication }: JobDetailProps) {
       <div className="flex flex-col md:flex-row gap-6">
         <Card className="w-full md:w-1/2">
           <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0">
-            <CardTitle>Tailored Resume</CardTitle>
+            <CardTitle>Tailored resume</CardTitle>
             <div className="flex flex-col xs:flex-row gap-2 w-full md:w-auto mt-2 md:mt-0">
               <DocumentActions
                 url={jobApplication.tailoredResume}
@@ -504,7 +504,7 @@ export function JobDetail({ jobApplication }: JobDetailProps) {
                 className="w-full xs:w-auto"
                 onClick={() => printDocument("resume")}
               >
-                Print Resume
+                Print resume
               </Button>
             </div>
           </CardHeader>
@@ -538,7 +538,7 @@ export function JobDetail({ jobApplication }: JobDetailProps) {
 
         <Card className="w-full md:w-1/2">
           <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0">
-            <CardTitle>Cover Letter</CardTitle>
+            <CardTitle>Cover letter</CardTitle>
             <div className="flex flex-col xs:flex-row gap-2 w-full md:w-auto mt-2 md:mt-0">
               <DocumentActions
                 url={jobApplication.coverLetter}
@@ -553,7 +553,7 @@ export function JobDetail({ jobApplication }: JobDetailProps) {
                 className="w-full xs:w-auto"
                 onClick={() => printDocument("coverLetter")}
               >
-                Print Cover Letter
+                Print Cover letter
               </Button>
             </div>
           </CardHeader>
@@ -568,7 +568,7 @@ export function JobDetail({ jobApplication }: JobDetailProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Job Description</CardTitle>
+          <CardTitle>Job description</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="whitespace-pre-wrap rounded-md border p-4 bg-muted/50">
@@ -579,7 +579,7 @@ export function JobDetail({ jobApplication }: JobDetailProps) {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Application Status</CardTitle>
+          <CardTitle>Application status</CardTitle>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" size="sm" disabled={isDeleting}>
@@ -589,7 +589,7 @@ export function JobDetail({ jobApplication }: JobDetailProps) {
                   </>
                 ) : (
                   <>
-                    <Trash2 className="h-4 w-4 mr-2" /> Delete Job
+                    <Trash2 className="h-4 w-4 mr-2" /> Delete job
                   </>
                 )}
               </Button>

@@ -1,28 +1,6 @@
 import Link from "next/link";
-import { Archivo, Fraunces, Space_Mono } from "next/font/google";
 
 import "./landing.css";
-
-const display = Fraunces({
-  subsets: ["latin"],
-  axes: ["SOFT", "WONK", "opsz"],
-  style: ["normal", "italic"],
-  variable: "--ds-font-display",
-  display: "swap",
-});
-
-const body = Archivo({
-  subsets: ["latin"],
-  variable: "--ds-font-body",
-  display: "swap",
-});
-
-const mono = Space_Mono({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--ds-font-mono",
-  display: "swap",
-});
 
 const NAV = [
   { href: "#method", label: "Method" },
@@ -84,7 +62,7 @@ export default function HomePage() {
   const year = new Date().getFullYear();
 
   return (
-    <div className={`ds ${display.variable} ${body.variable} ${mono.variable}`}>
+    <div className="ds">
       <header className="ds-masthead">
         <div className="ds-shell ds-masthead__row">
           <Link href="/" className="ds-wordmark" aria-label="Job Search Assistant, home">

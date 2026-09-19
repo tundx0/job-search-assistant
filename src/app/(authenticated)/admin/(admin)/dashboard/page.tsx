@@ -18,8 +18,8 @@ export default async function AdminDashboardPage() {
     return (
       <div className="space-y-4 sm:space-y-8 px-2 sm:px-0">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-          <p className="text-sm sm:text-base text-red-500">{error}</p>
+          <h1 className="page-title">Admin dashboard</h1>
+          <p className="text-sm sm:text-base text-destructive">{error}</p>
         </div>
       </div>
     );
@@ -29,7 +29,7 @@ export default async function AdminDashboardPage() {
     return (
       <div className="space-y-4 sm:space-y-8 px-2 sm:px-0">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+          <h1 className="page-title">Admin dashboard</h1>
           <p className="text-sm sm:text-base text-muted-foreground">No metrics data available.</p>
         </div>
       </div>
@@ -39,7 +39,7 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-4 sm:space-y-8 px-2 sm:px-0">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+        <h1 className="page-title">Admin dashboard</h1>
         <p className="text-sm sm:text-base text-muted-foreground">
           Overview of all system metrics and user activities
         </p>

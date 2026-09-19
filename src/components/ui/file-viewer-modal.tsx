@@ -162,7 +162,7 @@ function TextViewer({ url }: { url: string }) {
   }, [url]);
 
   if (isLoading) return <div>Loading content...</div>;
-  if (error) return <div className="text-red-500">Error: {error}</div>;
+  if (error) return <div className="text-destructive">Error: {error}</div>;
   
   return <>{content}</>;
 }
@@ -193,7 +193,7 @@ function JsonViewer({ url }: { url: string }) {
   }, [url]);
 
   if (isLoading) return <div>Loading content...</div>;
-  if (error) return <div className="text-red-500">Error: {error}</div>;
+  if (error) return <div className="text-destructive">Error: {error}</div>;
   
   return <>{JSON.stringify(content, null, 2)}</>;
 }

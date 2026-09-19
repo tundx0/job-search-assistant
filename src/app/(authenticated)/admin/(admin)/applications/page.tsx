@@ -40,53 +40,18 @@ import {
   ExternalLink,
   Eye,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { StatusChip } from "@/components/jobs/status-chip";
 import { Prisma } from "@prisma/client";
 
 // Get color based on score
 function getScoreColor(score: number) {
-  if (score >= 80) return "bg-green-100 text-green-800";
-  if (score >= 60) return "bg-blue-100 text-blue-800";
-  if (score >= 40) return "bg-yellow-100 text-yellow-800";
-  return "bg-red-100 text-red-800";
+  if (score >= 80) return "chip chip-success";
+  if (score >= 60) return "chip chip-info";
+  if (score >= 40) return "chip chip-warning";
+  return "chip chip-danger";
 }
 
 // Get status badge style
-function getStatusBadge(status: string) {
-  switch (status.toLowerCase()) {
-    case "submitted":
-      return (
-        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-          {status}
-        </Badge>
-      );
-    case "pending":
-      return (
-        <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
-          {status}
-        </Badge>
-      );
-    case "rejected":
-      return (
-        <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
-          {status}
-        </Badge>
-      );
-    case "interview":
-      return (
-        <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-          {status}
-        </Badge>
-      );
-    default:
-      return (
-        <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">
-          {status}
-        </Badge>
-      );
-  }
-}
-
 export default async function ApplicationsPage({
   searchParams,
 }: {
@@ -157,7 +122,7 @@ export default async function ApplicationsPage({
     <div className="space-y-4 sm:space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-2">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+          <h1 className="page-title">
             Job Applications
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
@@ -237,12 +202,12 @@ export default async function ApplicationsPage({
                       {app.user.name}
                     </TableCell>
                     <TableCell>
-                      {getStatusBadge(app.status || "Unknown")}
+                      <StatusChip status={app.status || "Unknown"} />
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       {app.strengthScore !== null && (
                         <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getScoreColor(
+                          className={`${getScoreColor(
                             app.strengthScore
                           )}`}
                         >
@@ -260,7 +225,7 @@ export default async function ApplicationsPage({
                             href={app.tailoredResume}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center text-xs text-blue-600 hover:underline"
+                            className="inline-flex items-center text-xs text-info hover:underline"
                           >
                             <FileText className="h-3 w-3 mr-1" />
                             Resume
@@ -271,7 +236,7 @@ export default async function ApplicationsPage({
                             href={app.coverLetter}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center text-xs text-blue-600 hover:underline"
+                            className="inline-flex items-center text-xs text-info hover:underline"
                           >
                             <FileText className="h-3 w-3 mr-1" />
                             Cover Letter

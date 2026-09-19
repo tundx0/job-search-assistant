@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import { Button } from "@/components/ui/button";
+import { StatusChip } from "@/components/jobs/status-chip";
+import { ArrowLeft } from "lucide-react";
 import { JobDetail } from "@/components/jobs/job-detail";
 import { JobApplicationStatus } from "@/types";
 
@@ -33,18 +35,22 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {jobApplication.jobTitle}
-          </h1>
-          <p className="text-muted-foreground">{jobApplication.companyName}</p>
+    <div className="space-y-8">
+      <header className="page-head">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="label-mono">{jobApplication.companyName}</p>
+            <StatusChip status={jobApplication.status} />
+          </div>
+          <h1 className="page-title mt-2">{jobApplication.jobTitle}</h1>
         </div>
         <Link href="/dashboard">
-          <Button variant="outline">Back to Dashboard</Button>
+          <Button variant="outline">
+            <ArrowLeft aria-hidden="true" />
+            Back to dashboard
+          </Button>
         </Link>
-      </div>
+      </header>
 
       <JobDetail
         jobApplication={{

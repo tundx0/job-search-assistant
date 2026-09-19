@@ -1,6 +1,5 @@
 import { getCurrentUser } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
-import { SettingsSidebar } from "@/components/settings/settings-sidebar";
 import { SettingsContent } from "@/components/settings/settings-content";
 import { db } from "@/lib/db";
 
@@ -21,16 +20,5 @@ export default async function SettingsPage() {
     redirect("/auth/login");
   }
   
-  return (
-    <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="w-full md:w-1/4">
-          <SettingsSidebar />
-        </div>
-        <div className="w-full md:w-3/4">
-          <SettingsContent user={user} />
-        </div>
-      </div>
-    </div>
-  );
+  return <SettingsContent user={user} />;
 }

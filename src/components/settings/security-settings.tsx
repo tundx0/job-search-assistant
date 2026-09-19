@@ -73,9 +73,9 @@ export function SecuritySettings() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Security Settings</h1>
-        <p className="text-gray-500 dark:text-gray-400">
+      <div className="mb-7 border-b border-[var(--rule)] pb-5">
+        <h2 className="text-2xl font-semibold tracking-tight">Security Settings</h2>
+        <p className="text-muted-foreground">
           Manage your account security and password
         </p>
       </div>
@@ -193,7 +193,7 @@ export function SecuritySettings() {
           <CardDescription>Additional security settings</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Your account is protected with password authentication. Additional
             security options like two-factor authentication will be available in
             future updates.

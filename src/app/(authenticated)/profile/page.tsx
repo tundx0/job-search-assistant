@@ -182,22 +182,31 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <div className="text-center">
-          <p className="text-muted-foreground">Loading profile...</p>
-        </div>
+      <div className="flex h-[60vh] items-center justify-center">
+        <p className="label-mono">Loading profile</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold tracking-tight mb-8">Profile</h1>
+    <div className="mx-auto max-w-3xl space-y-8">
+      <header className="page-head">
+        <div>
+          <p className="label-mono">Your history</p>
+          <h1 className="page-title mt-2">Profile</h1>
+          <p className="page-subtitle">
+            Written once and reused for every application. The more concrete
+            this is, the better the drafts get.
+          </p>
+        </div>
+      </header>
 
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Basic Information */}
-        <div className="rounded-lg border bg-card p-6">
-          <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
+        <div className="rounded-xl border border-border bg-card p-6 sm:p-7">
+          <h2 className="mb-6 border-b border-[var(--rule)] pb-4 text-lg font-semibold">
+            Basic information
+          </h2>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
@@ -205,7 +214,7 @@ export default function ProfilePage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full Name</FormLabel>
+                    <FormLabel>Full name</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="John Doe"
@@ -223,7 +232,7 @@ export default function ProfilePage() {
                 name="bio"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Professional Bio</FormLabel>
+                    <FormLabel>Professional bio</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="A brief professional summary about yourself..."
@@ -354,7 +363,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Work Experience */}
-        <div className="rounded-lg border bg-card p-6">
+        <div className="rounded-xl border border-border bg-card p-6 sm:p-7">
           <ProfileEntryList
             type="experience"
             items={experience}
@@ -363,7 +372,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Education */}
-        <div className="rounded-lg border bg-card p-6">
+        <div className="rounded-xl border border-border bg-card p-6 sm:p-7">
           <ProfileEntryList
             type="education"
             items={education}
@@ -372,7 +381,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Projects */}
-        <div className="rounded-lg border bg-card p-6">
+        <div className="rounded-xl border border-border bg-card p-6 sm:p-7">
           <ProfileEntryList
             type="projects"
             items={projects}
@@ -380,14 +389,16 @@ export default function ProfilePage() {
           />
         </div>
 
-        <Button
-          onClick={form.handleSubmit(onSubmit)}
-          className="w-full"
-          disabled={isSaving}
-          size="lg"
-        >
-          {isSaving ? "Saving All Changes..." : "Save All Profile Changes"}
-        </Button>
+        <div className="sticky bottom-4 z-10 rounded-xl border border-border bg-card/95 p-3 backdrop-blur-lg">
+          <Button
+            onClick={form.handleSubmit(onSubmit)}
+            className="w-full"
+            disabled={isSaving}
+            size="lg"
+          >
+            {isSaving ? "Saving…" : "Save profile"}
+          </Button>
+        </div>
       </div>
     </div>
   );

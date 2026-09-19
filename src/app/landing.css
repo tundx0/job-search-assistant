@@ -4,6 +4,11 @@
    ========================================================================== */
 
 .ds {
+  /* Type comes from the app-wide faces loaded in the root layout. */
+  --ds-font-display: var(--font-display);
+  --ds-font-body: var(--font-sans);
+  --ds-font-mono: var(--font-mono-face);
+
   /* Ground & ink */
   --ds-ink: oklch(0.155 0.008 60);
   --ds-ink-raised: oklch(0.196 0.009 62);

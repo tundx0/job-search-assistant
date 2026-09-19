@@ -40,19 +40,19 @@ function AdminSidebar({
       {/* Mobile sidebar backdrop */}
       {isOpen && (
         <div 
-          className="fixed inset-0 z-20 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-20 bg-[oklch(0_0_0/0.5)] lg:hidden"
           onClick={onClose}
         />
       )}
 
       {/* Sidebar */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-30 w-56 sm:w-64 transform bg-gray-900 text-white transition-transform duration-200 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:static lg:z-10`}
+        className={`fixed inset-y-0 left-0 z-30 w-56 sm:w-64 transform bg-sidebar text-sidebar-foreground border-r border-[var(--rule)] transition-transform duration-200 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:static lg:z-10`}
       >
-        <div className="flex h-14 sm:h-16 items-center justify-between border-b border-gray-800 px-3 sm:px-4">
+        <div className="flex h-14 sm:h-16 items-center justify-between border-b border-border px-3 sm:px-4">
           <h1 className="text-base sm:text-xl font-bold truncate">Admin Dashboard</h1>
           <button 
-            className="p-1 rounded-md hover:bg-gray-800 lg:hidden"
+            className="p-1 rounded-md hover:bg-accent lg:hidden"
             onClick={onClose}
           >
             <X className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -69,7 +69,7 @@ function AdminSidebar({
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className={`flex items-center rounded-md px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base transition-colors ${isActive ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800/70 hover:text-white'}`}
+                    className={`flex items-center rounded-md px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base transition-colors ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'}`}
                   >
                     <Icon className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
                     <span className="truncate">{item.label}</span>
@@ -81,7 +81,7 @@ function AdminSidebar({
             <li className="mt-6 sm:mt-8">
               <Link
                 href="/"
-                className="flex items-center rounded-md px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-300 hover:bg-gray-800/70 hover:text-white transition-colors"
+                className="flex items-center rounded-md px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
               >
                 <LogOut className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="truncate">Back to App</span>
@@ -97,7 +97,7 @@ function AdminSidebar({
 // Mobile header component
 function MobileHeader({ onOpenSidebar }: { onOpenSidebar: () => void }) {
   return (
-    <header className="sticky top-0 z-10 flex h-14 sm:h-16 items-center bg-white dark:bg-gray-800 shadow-sm lg:hidden px-3 sm:px-4">
+    <header className="sticky top-0 z-10 flex h-14 sm:h-16 items-center bg-card shadow-sm lg:hidden px-3 sm:px-4">
       <Button 
         variant="ghost" 
         size="icon"
@@ -133,7 +133,7 @@ export function AdminDashboardUI({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex min-h-screen bg-muted">
       <AdminSidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 

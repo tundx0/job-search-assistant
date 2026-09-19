@@ -7,8 +7,7 @@ import { GeneralSettings } from "./general-settings";
 import { ApiKeysSettings } from "./api-keys-settings";
 import { AiModelSettings } from "./ai-model-settings";
 import { ProfileSettings } from "./profile-settings";
-// SecuritySettings will be implemented later
-// import { SecuritySettings } from "./security-settings";
+import { SecuritySettings } from "./security-settings";
 
 interface SettingsContentProps {
   user: User;
@@ -28,18 +27,12 @@ export function SettingsContent({ user }: SettingsContentProps) {
     } else if (pathname === "/settings/profile") {
       return <ProfileSettings user={user} />;
     } else if (pathname === "/settings/security") {
-      // Uncomment when SecuritySettings component is implemented
-      // return <SecuritySettings user={user} />;
-      return <div className="p-4">Security settings coming soon</div>;
+      return <SecuritySettings />;
     }
     
     // Default to general settings
     return <GeneralSettings user={user} />;
   };
   
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-      {renderSettingsContent()}
-    </div>
-  );
+  return renderSettingsContent();
 }

@@ -36,8 +36,8 @@ export function DocumentCharts({ metrics }: DocumentChartsProps) {
               <Area
                 type="monotone"
                 dataKey="count"
-                stroke="#00C49F"
-                fill="#00C49F"
+                stroke="var(--chart-4)"
+                fill="var(--chart-4)"
                 name="Documents"
               />
             </AreaChart>

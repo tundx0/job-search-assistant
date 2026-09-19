@@ -18,12 +18,11 @@ import type { AdminMetrics } from "@/lib/admin/admin-metrics";
 
 // Colors for charts
 const COLORS = [
-  "#0088FE",
-  "#00C49F",
-  "#FFBB28",
-  "#FF8042",
-  "#8884d8",
-  "#82ca9d",
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
 ];
 
 interface ApplicationChartsProps {
@@ -50,7 +49,7 @@ export function ApplicationCharts({ metrics }: ApplicationChartsProps) {
               <Legend />
               <Bar
                 dataKey="count"
-                fill="#8884d8"
+                fill="var(--chart-1)"
                 name="Applications"
               />
             </BarChart>
@@ -71,7 +70,7 @@ export function ApplicationCharts({ metrics }: ApplicationChartsProps) {
                 cy="50%"
                 labelLine={false}
                 outerRadius={80}
-                fill="#8884d8"
+                fill="var(--chart-1)"
                 dataKey="count"
                 nameKey="status"
                 label={({ status, percent }) => 

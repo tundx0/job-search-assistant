@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { AuthHeader } from "@/components/auth/auth-header";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Card,
@@ -84,11 +85,10 @@ export default function ForgotPasswordPage() {
 
   if (emailSent) {
     return (
-      <div className="flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center px-4 py-8 sm:py-12">
-        <Card className="w-full max-w-md mx-auto">
+      <Card>
           <CardHeader>
             <CardTitle className="text-xl sm:text-2xl">Check your email</CardTitle>
-            <CardDescription className="text-sm sm:text-base">
+            <CardDescription >
               We&apos;ve sent password reset instructions to your email address.
             </CardDescription>
           </CardHeader>
@@ -108,25 +108,22 @@ export default function ForgotPasswordPage() {
               Try again
             </Button>
           </CardFooter>
-        </Card>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center px-4 py-8 sm:py-12">
-      <div className="w-full max-w-md mx-auto">
-        <h2 className="text-center text-2xl sm:text-3xl font-bold tracking-tight">
-          Reset your password
-        </h2>
-        <p className="mt-2 text-center text-xs sm:text-sm text-muted-foreground">
-          Enter your email address and we&apos;ll send you a link to reset your
-          password.
-        </p>
-      </div>
+    <>
+      <AuthHeader
+        kicker="Password reset"
+        title="Reset your password"
+      >
+        Enter your email address and we&apos;ll send you a link to set a new
+        one.
+      </AuthHeader>
 
-      <div className="mt-6 sm:mt-8 w-full max-w-md mx-auto">
-        <div className="bg-card px-4 sm:px-6 py-6 sm:py-8 shadow rounded-lg">
+      <div>
+        <div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
               <FormField
@@ -134,17 +131,17 @@ export default function ForgotPasswordPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm sm:text-base">Email address</FormLabel>
+                    <FormLabel >Email address</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
                         placeholder="you@example.com"
                         {...field}
                         disabled={isLoading}
-                        className="text-sm sm:text-base"
+                        
                       />
                     </FormControl>
-                    <FormMessage className="text-xs sm:text-sm" />
+                    <FormMessage  />
                   </FormItem>
                 )}
               />
@@ -167,6 +164,6 @@ export default function ForgotPasswordPage() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -2,83 +2,48 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  Settings, 
-  Key, 
-  User, 
-  Shield, 
-  Bot
-} from "lucide-react";
+import { Settings, Key, User, Shield, Bot } from "lucide-react";
 
 const settingsNavItems = [
-  {
-    title: "General",
-    href: "/settings",
-    icon: Settings,
-    exact: true,
-  },
-  {
-    title: "AI Models",
-    href: "/settings/ai-models",
-    icon: Bot,
-    exact: false,
-  },
-  {
-    title: "API Keys",
-    href: "/settings/api-keys",
-    icon: Key,
-    exact: false,
-  },
-  {
-    title: "Profile",
-    href: "/settings/profile",
-    icon: User,
-    exact: false,
-  },
-  {
-    title: "Security",
-    href: "/settings/security",
-    icon: Shield,
-    exact: false,
-  },
+  { title: "General", href: "/settings", icon: Settings, exact: true },
+  { title: "AI models", href: "/settings/ai-models", icon: Bot, exact: false },
+  { title: "API keys", href: "/settings/api-keys", icon: Key, exact: false },
+  { title: "Profile", href: "/settings/profile", icon: User, exact: false },
+  { title: "Security", href: "/settings/security", icon: Shield, exact: false },
 ];
 
 export function SettingsSidebar() {
   const pathname = usePathname();
-  
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-lg font-medium">Settings</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Manage your account settings
-        </p>
-      </div>
-      <nav className="p-2">
-        <ul className="space-y-1">
-          {settingsNavItems.map((item) => {
-            const isActive = item.exact 
-              ? pathname === item.href 
-              : pathname === item.href || pathname.startsWith(`${item.href}/`);
-              
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
-                    isActive
-                      ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-                  }`}
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.title}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-    </div>
+    <nav aria-label="Settings" className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+      <ul className="flex gap-1 overflow-x-auto border-b border-[var(--rule)] pb-px lg:flex-col lg:gap-0.5 lg:overflow-visible lg:border-b-0 lg:border-l lg:border-[var(--rule)] lg:pb-0 lg:pl-0">
+        {settingsNavItems.map((item) => {
+          const isActive = item.exact
+            ? pathname === item.href
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                aria-current={isActive ? "page" : undefined}
+                className={`relative flex items-center gap-2.5 whitespace-nowrap px-3 py-2.5 font-mono text-[0.6875rem] uppercase tracking-[0.14em] transition-colors lg:-ml-px lg:border-l-2 ${
+                  isActive
+                    ? "text-foreground lg:border-primary"
+                    : "text-muted-foreground hover:text-foreground lg:border-transparent"
+                }`}
+              >
+                <item.icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <span>{item.title}</span>
+                {isActive && (
+                  <span className="absolute inset-x-3 -bottom-px h-0.5 bg-primary lg:hidden" />
+                )}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   );
 }
