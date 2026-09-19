@@ -4,8 +4,8 @@ import { prisma } from "@/lib/db/prisma";
 import { calculateResumeStrengthWithAI } from "@/lib/ai/resume-scoring";
 import { retrieveFile } from "@/lib/storage";
 import {
-  parseStorageKeyFromUrl,
-  resolveOwnedStorageKey,
+  parseStorageLocationFromUrl,
+  resolveJobOwnedStorageKey,
 } from "@/lib/storage/paths";
 
 /**
@@ -55,19 +55,27 @@ export async function POST(
     let resumeJSON;
     try {
       const stored = jobApplication.tailoredResumeJSON;
-      const storageKey = parseStorageKeyFromUrl(stored);
+      const location = parseStorageLocationFromUrl(stored);
 
-      if (storageKey) {
-        const ownedKey = resolveOwnedStorageKey(storageKey, user.id, {
-          allowAdmin: user.role === "ADMIN",
-        });
+      if (location) {
+        const ownedKey = resolveJobOwnedStorageKey(
+          location.key,
+          user.id,
+          jobId,
+          { allowAdmin: user.role === "ADMIN" }
+        );
         if (!ownedKey) {
           return NextResponse.json(
             { message: "Unauthorized" },
             { status: 403 }
           );
         }
-        resumeJSON = JSON.parse(await retrieveFile(ownedKey));
+        resumeJSON = JSON.parse(
+          await retrieveFile(ownedKey, {
+            provider: location.provider,
+            bucket: location.bucket,
+          })
+        );
       } else if (stored.trim().startsWith("{")) {
         resumeJSON = JSON.parse(stored);
       } else {

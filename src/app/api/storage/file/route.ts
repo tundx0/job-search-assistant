@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
 import path from "path";
 import { getCurrentUser } from "@/lib/auth/session";
-import {
-  retrieveFileBytes,
-} from "@/lib/storage";
+import { retrieveFileBytes } from "@/lib/storage";
 import {
   getContentTypeForFile,
-  getStorageRoot,
+  parseStorageBucketParam,
+  parseStorageProviderParam,
   resolveOwnedStorageKey,
-  resolveStorageFsPath,
 } from "@/lib/storage/paths";
+
+function isNotFoundError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /not found|NoSuchKey|NotFound/i.test(message);
+}
 
 export async function GET(request: Request) {
   try {
@@ -39,20 +41,33 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: "Invalid file path" }, { status: 400 });
     }
 
-    const storageRoot = getStorageRoot();
-    const fsPath = resolveStorageFsPath(storageRoot, fileKey);
-    if (!fsPath) {
-      return NextResponse.json({ message: "Invalid file path" }, { status: 400 });
+    const providerParam = searchParams.get("provider");
+    const provider = parseStorageProviderParam(providerParam);
+    if (providerParam && !provider) {
+      return NextResponse.json({ message: "Invalid provider" }, { status: 400 });
+    }
+
+    const bucketParam = searchParams.get("bucket");
+    const bucket = parseStorageBucketParam(bucketParam);
+    if (bucketParam && bucket == null) {
+      return NextResponse.json({ message: "Invalid bucket" }, { status: 400 });
     }
 
     let body: Buffer;
     try {
-      body = await retrieveFileBytes(fileKey);
-    } catch {
-      if (!fs.existsSync(fsPath) || !fs.statSync(fsPath).isFile()) {
+      body = await retrieveFileBytes(fileKey, {
+        provider,
+        bucket: bucket || undefined,
+      });
+    } catch (error) {
+      if (isNotFoundError(error)) {
         return NextResponse.json({ message: "File not found" }, { status: 404 });
       }
-      return NextResponse.json({ message: "File not found" }, { status: 404 });
+      console.error("Error reading file:", error);
+      return NextResponse.json(
+        { message: "Failed to read file" },
+        { status: 500 }
+      );
     }
 
     const contentType = getContentTypeForFile(fileKey);

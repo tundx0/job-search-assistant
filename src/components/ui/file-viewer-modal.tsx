@@ -30,7 +30,12 @@ function toAuthenticatedFileUrl(url: string): string {
     if (parsed.pathname === "/api/storage/file") {
       return `${parsed.pathname}${parsed.search}`;
     }
-    if (parsed.pathname.startsWith("/storage/")) {
+    const sameOrigin = parsed.origin === window.location.origin;
+    if (
+      sameOrigin &&
+      parsed.pathname.startsWith("/storage/") &&
+      !parsed.pathname.startsWith("/storage/v1/")
+    ) {
       const name = parsed.pathname.slice("/storage/".length);
       return `/api/storage/file?name=${encodeURIComponent(name)}`;
     }

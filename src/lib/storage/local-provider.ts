@@ -73,7 +73,7 @@ export class LocalStorageProvider implements IStorageProvider {
       const stats = fs.statSync(filePath);
 
       return {
-        url: getAuthenticatedFileUrl(fileKey),
+        url: getAuthenticatedFileUrl(fileKey, { provider: "local" }),
         key: fileKey,
         size: stats.size,
         contentType,
@@ -89,7 +89,7 @@ export class LocalStorageProvider implements IStorageProvider {
   }
 
   /**
-   * Download a file from the local file system
+   * Download a file from the local file system as UTF-8 text
    */
   async downloadFile(fileKey: string): Promise<string> {
     const buffer = await this.downloadFileBuffer(fileKey);
@@ -141,7 +141,7 @@ export class LocalStorageProvider implements IStorageProvider {
    */
   async getSignedUrl(fileKey: string): Promise<string> {
     this.resolvePath(fileKey);
-    return getAuthenticatedFileUrl(fileKey);
+    return getAuthenticatedFileUrl(fileKey, { provider: "local" });
   }
 
   /**

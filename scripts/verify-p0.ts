@@ -65,12 +65,17 @@ async function main() {
   const {
     sanitizeStorageKey,
     resolveOwnedStorageKey,
+    resolveJobOwnedStorageKey,
     resolveStorageFsPath,
     getStorageRoot,
     parseStorageKeyFromUrl,
+    parseStorageLocationFromUrl,
+    getAuthenticatedFileUrl,
+    isLegacyAppStoragePath,
   } = await import("../src/lib/storage/paths");
 
   const userId = "11111111-1111-1111-1111-111111111111";
+  const jobId = "22222222-2222-2222-2222-222222222222";
   assert.equal(sanitizeStorageKey("../package.json"), null);
   assert.equal(sanitizeStorageKey("/etc/passwd"), null);
   assert.equal(sanitizeStorageKey("..\\package.json"), null);
@@ -91,6 +96,61 @@ async function main() {
     parseStorageKeyFromUrl("/api/storage/file?name=users%2Fid%2Fresume.pdf"),
     "users/id/resume.pdf"
   );
+
+  assert.equal(isLegacyAppStoragePath("/storage/resume.pdf"), true);
+  assert.equal(isLegacyAppStoragePath("/storage/v1/object/public/docs/x"), false);
+  assert.notEqual(
+    parseStorageKeyFromUrl("/storage/v1/object/public/docs/resume.json"),
+    "v1/object/public/docs/resume.json"
+  );
+  assert.deepEqual(
+    parseStorageLocationFromUrl("/storage/v1/object/public/docs/resume.json"),
+    { key: "resume.json", provider: "supabase", bucket: "docs" }
+  );
+  assert.equal(
+    parseStorageKeyFromUrl("https://xyz.supabase.co/storage/v1/object/public/documents/resume-abc.json"),
+    "resume-abc.json"
+  );
+  assert.deepEqual(
+    parseStorageLocationFromUrl(
+      "https://xyz.supabase.co/storage/v1/object/public/documents/resume-abc.json"
+    ),
+    { key: "resume-abc.json", provider: "supabase", bucket: "documents" }
+  );
+  assert.deepEqual(
+    parseStorageLocationFromUrl(
+      `https://job-files.s3.us-east-1.amazonaws.com/resume-${jobId}.json`
+    ),
+    { key: `resume-${jobId}.json`, provider: "aws", bucket: "job-files" }
+  );
+  assert.deepEqual(
+    parseStorageLocationFromUrl(
+      `https://s3.us-east-1.amazonaws.com/job-files/resume-${jobId}.json`
+    ),
+    { key: `resume-${jobId}.json`, provider: "aws", bucket: "job-files" }
+  );
+  assert.equal(
+    resolveJobOwnedStorageKey(`resume-${jobId}.json`, userId, jobId),
+    `resume-${jobId}.json`
+  );
+  assert.equal(
+    resolveJobOwnedStorageKey("users/other-user/resume.json", userId, jobId),
+    null
+  );
+  assert.equal(
+    getAuthenticatedFileUrl("users/id/resume.pdf", {
+      provider: "aws",
+      bucket: "job-files",
+    }),
+    "/api/storage/file?name=users%2Fid%2Fresume.pdf&provider=aws&bucket=job-files"
+  );
+
+  const { sdkBodyToBuffer } = await import("../src/lib/storage/bytes");
+  const pdfBytes = Uint8Array.from([0x25, 0x50, 0x44, 0x46, 0x2d, 0xff]);
+  const recovered = await sdkBodyToBuffer({
+    transformToByteArray: async () => pdfBytes,
+  });
+  assert.deepEqual(Uint8Array.from(recovered), pdfBytes);
 
   const { isPublicPath, isGuestOnlyAuthPath } = await import(
     "../src/lib/auth/public-paths"
@@ -140,6 +200,10 @@ async function main() {
   console.log("- generate route module loads without a system OpenAI key and returns JSON errors");
   console.log("- missing keys throw a JSON-friendly MissingApiKeyError");
   console.log("- storage rejects ../package.json, absolute paths, and cross-user keys");
+  console.log("- legacy S3/Supabase resume URLs parse to owned keys without fetching");
+  console.log("- /storage/v1/ is not treated as a local storage key");
+  console.log("- authenticated file URLs preserve provider and bucket");
+  console.log("- cloud downloads keep raw bytes (no UTF-8 PDF mangling)");
   console.log("- forgot/reset/error/logout are public and not guest-only");
   console.log("- ENCRYPTION_KEY default is refused; reset tokens are hashed");
 }

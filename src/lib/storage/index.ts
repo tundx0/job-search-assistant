@@ -91,7 +91,9 @@ export {
   getAuthenticatedFileUrl,
   getUserStoragePrefix,
   parseStorageKeyFromUrl,
+  parseStorageLocationFromUrl,
   resolveOwnedStorageKey,
+  resolveJobOwnedStorageKey,
   sanitizeStorageKey,
 } from "./paths";
 
@@ -119,7 +121,10 @@ export async function storeFile(
       console.warn("Failed to get direct URL, using default URL", error);
     }
   } else {
-    fileInfo.url = getAuthenticatedFileUrl(fileInfo.key);
+    fileInfo.url = getAuthenticatedFileUrl(fileInfo.key, {
+      provider: fileInfo.provider,
+      bucket: options?.bucket,
+    });
   }
 
   return fileInfo;
@@ -188,12 +193,7 @@ export async function retrieveFileBytes(
   options?: StorageOptions
 ): Promise<Buffer> {
   const provider = getProvider(options?.provider);
-  if (provider instanceof LocalStorageProvider) {
-    return provider.downloadFileBuffer(fileKey);
-  }
-
-  const content = await provider.downloadFile(fileKey, options);
-  return Buffer.from(content);
+  return provider.downloadFileBuffer(fileKey, options);
 }
 
 /**
@@ -226,7 +226,10 @@ export async function generatePDF(
       }
     );
 
-    return getAuthenticatedFileUrl(fileInfo.key);
+    return getAuthenticatedFileUrl(fileInfo.key, {
+      provider: fileInfo.provider,
+      bucket: options?.bucket,
+    });
   } catch (error) {
     console.error("Error generating PDF:", error);
     throw new Error(
