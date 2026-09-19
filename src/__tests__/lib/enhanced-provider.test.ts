@@ -367,7 +367,7 @@ describe("Enhanced AI Provider", () => {
           provider: "openai",
           modelId: "gpt-4",
         })
-      ).rejects.toThrow("No API key available for OpenAI");
+      ).rejects.toThrow("Add an API key in Settings");
 
       // Restore original API keys
       process.env.OPENAI_API_KEY = originalOpenAIKey;

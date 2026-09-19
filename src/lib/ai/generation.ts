@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
-import { getAIProvider } from "./provider";
 import { generateTextWithUserKey } from "./enhanced-provider";
+import { isMissingApiKeyError } from "./errors";
 import {
   ApiProvider,
   getUserAiModelPreference,
@@ -76,7 +76,7 @@ export async function generateResume(
 
   try {
     const userPreferredProvider = await getUserAiModelPreference(userId);
-    const provider = userPreferredProvider || getAIProvider();
+    const provider = userPreferredProvider;
 
     let contactLine = `${userProfile.name}`;
     const contactDetails: string[] = [];
@@ -199,6 +199,9 @@ export async function generateResume(
 
     return resumeContent;
   } catch (error) {
+    if (isMissingApiKeyError(error)) {
+      throw error;
+    }
     console.error("Error generating resume:", error);
     throw new Error("Failed to generate resume. Please try again later.");
   }
@@ -266,11 +269,8 @@ export async function generateCoverLetter(
   });
 
   try {
-    // Get user's preferred AI provider if available
     const userPreferredProvider = await getUserAiModelPreference(userId);
-
-    // Default to system provider if user has no preference
-    const provider = userPreferredProvider || getAIProvider();
+    const provider = userPreferredProvider;
 
     const prompt = `
       You are a professional cover letter writer. Create a personalized cover letter for ${
@@ -348,6 +348,9 @@ export async function generateCoverLetter(
 
     return cleanedContent;
   } catch (error) {
+    if (isMissingApiKeyError(error)) {
+      throw error;
+    }
     console.error("Error generating cover letter:", error);
     throw new Error("Failed to generate cover letter. Please try again later.");
   }

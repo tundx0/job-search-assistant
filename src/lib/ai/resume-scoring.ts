@@ -1,4 +1,4 @@
-import { generateText } from "./provider";
+import { generateTextWithUserKey } from "./enhanced-provider";
 import { ResumeJSON } from "./simple-json-generation";
 import { createObjectHash } from "../utils/hash";
 import { ResumeInsight } from "@/types";
@@ -21,7 +21,8 @@ export interface ResumeInsightData extends ResumeInsight {
 export async function calculateResumeStrengthWithAI(
   resume: ResumeJSON,
   jobDescription: string,
-  jobTitle: string
+  jobTitle: string,
+  userId: string
 ): Promise<ResumeInsightData> {
   // Create a deterministic hash of the resume and job description for caching
   const resumeHash = createObjectHash(resume);
@@ -83,11 +84,15 @@ RESUME:
 ${JSON.stringify(resume)}
 `;
 
-    // Generate the detailed insights using the configured AI provider
-    const result = await generateText(prompt, systemPrompt, {
-      temperature: 0.2, // Lower temperature for more consistent analysis
-      maxTokens: 2000, // We need a longer response for detailed insights
-    });
+    const result = await generateTextWithUserKey(
+      userId,
+      prompt,
+      systemPrompt,
+      {
+        temperature: 0.2,
+        maxTokens: 2000,
+      }
+    );
 
     // Parse the JSON response
     try {

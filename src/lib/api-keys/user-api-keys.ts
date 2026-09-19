@@ -68,6 +68,9 @@ export async function getUserApiKey(
     // Decrypt the API key before returning
     return decryptData(apiKeyRecord.apiKey);
   } catch (error) {
+    if (error instanceof Error && error.message.includes("ENCRYPTION_KEY")) {
+      throw error;
+    }
     console.error(
       `Error retrieving ${provider} API key for user ${userId}:`,
       error

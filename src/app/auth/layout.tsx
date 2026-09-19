@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { getCurrentUser } from "@/lib/auth/session";
 import { Wordmark } from "@/components/layout/wordmark";
+import { isGuestOnlyAuthPath } from "@/lib/auth/public-paths";
 
 const PITCH = [
   "Write your profile once, reuse it for every posting.",
@@ -13,9 +15,12 @@ export default async function AuthLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = (await headers()).get("x-pathname") || "";
   const user = await getCurrentUser();
 
-  if (user) {
+  // Login/register bounce logged-in users. Forgot/reset/error/logout must
+  // stay reachable, including when a reset link is opened while signed in.
+  if (user && isGuestOnlyAuthPath(pathname)) {
     redirect("/dashboard");
   }
 

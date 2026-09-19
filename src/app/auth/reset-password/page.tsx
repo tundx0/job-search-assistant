@@ -69,7 +69,7 @@ export default function ResetPasswordPage() {
 
         if (!response.ok) {
           setIsValidToken(false);
-          setTokenError(data.error || "Invalid or expired reset token");
+          setTokenError(data.message || data.error || "Invalid or expired reset token");
         } else {
           setIsValidToken(true);
         }
@@ -106,7 +106,7 @@ export default function ResetPasswordPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || "Failed to reset password");
+        throw new Error(result.message || result.error || "Failed to reset password");
       }
 
       setIsSuccess(true);

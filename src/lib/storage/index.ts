@@ -15,6 +15,7 @@ import {
   IStorageProvider,
 } from "./types";
 import { ResumeJSON } from "@/lib/ai/simple-json-generation";
+import { getAuthenticatedFileUrl } from "./paths";
 
 // Provider instances cache
 let awsProvider: AwsStorageProvider | null = null;
@@ -86,6 +87,14 @@ export function getProvider(provider?: StorageProvider): IStorageProvider {
   }
 }
 
+export {
+  getAuthenticatedFileUrl,
+  getUserStoragePrefix,
+  parseStorageKeyFromUrl,
+  resolveOwnedStorageKey,
+  sanitizeStorageKey,
+} from "./paths";
+
 /**
  * Store a file in the storage system
  * @param content The content to store
@@ -101,13 +110,16 @@ export async function storeFile(
   const provider = getProvider(options?.provider);
   const fileInfo = await provider.uploadFile(content, fileName, options);
 
-  // If the file is public, use a direct URL instead of a signed URL
+  // Private by default. Authenticated API URLs work in local/dev and
+  // do not depend on a public static /storage mount.
   if (options?.public) {
     try {
       fileInfo.url = await provider.getDirectUrl(fileInfo.key, options);
     } catch (error) {
       console.warn("Failed to get direct URL, using default URL", error);
     }
+  } else {
+    fileInfo.url = getAuthenticatedFileUrl(fileInfo.key);
   }
 
   return fileInfo;
@@ -171,29 +183,37 @@ export async function getDirectUrl(
   return await provider.getDirectUrl(fileKey, options);
 }
 
+export async function retrieveFileBytes(
+  fileKey: string,
+  options?: StorageOptions
+): Promise<Buffer> {
+  const provider = getProvider(options?.provider);
+  if (provider instanceof LocalStorageProvider) {
+    return provider.downloadFileBuffer(fileKey);
+  }
+
+  const content = await provider.downloadFile(fileKey, options);
+  return Buffer.from(content);
+}
+
 /**
  * Generate a PDF from resume/cover letter content and upload to storage.
  * @param content The resume or cover letter content (plain text or markdown)
  * @param fileName The file name for the PDF
+ * @param jsonData Optional structured resume JSON
  * @param options Storage options
- * @returns The URL or identifier for the stored PDF
+ * @returns The authenticated URL for the stored PDF
  */
-
 export async function generatePDF(
   content: string,
   fileName: string,
-  optionsOrJsonData?: StorageOptions | ResumeJSON
+  jsonData?: ResumeJSON,
+  options?: StorageOptions
 ): Promise<string> {
   try {
     const { generateDocumentPDF } = await import("../pdf/pdf-service");
 
-    // Determine if the third parameter is JSON data or storage options
-    const isJsonData = optionsOrJsonData && "header" in optionsOrJsonData;
-    const options = isJsonData ? {} : (optionsOrJsonData as StorageOptions);
-    const jsonData = isJsonData ? (optionsOrJsonData as ResumeJSON) : undefined;
-
     const pdfBuffer = await generateDocumentPDF(content, fileName, jsonData);
-
     const provider = getProvider(options?.provider);
 
     const fileInfo = await provider.uploadFile(
@@ -202,11 +222,11 @@ export async function generatePDF(
       {
         ...options,
         contentType: "application/pdf",
-        public: true,
+        public: false,
       }
     );
 
-    return fileInfo.url;
+    return getAuthenticatedFileUrl(fileInfo.key);
   } catch (error) {
     console.error("Error generating PDF:", error);
     throw new Error(
