@@ -32,7 +32,35 @@ async function main() {
       error.message.includes("Add an API key in Settings")
   );
 
-  await import("../src/app/api/jobs/generate/route");
+  const generateRoute = await import("../src/app/api/jobs/generate/route");
+  const originalError = console.error;
+  console.error = () => {};
+  try {
+    const generateResponse = await generateRoute.POST(
+      new Request("http://localhost/api/jobs/generate", { method: "POST" })
+    );
+    const generateBody = await generateResponse.json();
+    assert.equal(typeof generateBody.message, "string");
+    assert.match(generateResponse.headers.get("content-type") || "", /json/i);
+    assert.ok(
+      generateResponse.status >= 400,
+      "generate route must return a JSON error rather than throwing HTML 500"
+    );
+  } finally {
+    console.error = originalError;
+  }
+
+  const { LocalStorageProvider } = await import("../src/lib/storage/local-provider");
+  const local = new LocalStorageProvider();
+  await assert.rejects(
+    () => local.downloadFile("../package.json"),
+    (error: unknown) =>
+      error instanceof Error && /Invalid file path|Failed to download/i.test(error.message)
+  );
+  await assert.rejects(
+    () => local.downloadFile("/etc/passwd"),
+    (error: unknown) => error instanceof Error
+  );
 
   const {
     sanitizeStorageKey,
@@ -109,9 +137,9 @@ async function main() {
 
   console.log("P0 verification passed:");
   console.log("- AI clients do not throw at import when system keys are missing");
-  console.log("- generate route module loads without a system OpenAI key");
+  console.log("- generate route module loads without a system OpenAI key and returns JSON errors");
   console.log("- missing keys throw a JSON-friendly MissingApiKeyError");
-  console.log("- storage rejects ../package.json and cross-user keys");
+  console.log("- storage rejects ../package.json, absolute paths, and cross-user keys");
   console.log("- forgot/reset/error/logout are public and not guest-only");
   console.log("- ENCRYPTION_KEY default is refused; reset tokens are hashed");
 }
