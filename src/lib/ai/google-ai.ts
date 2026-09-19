@@ -7,7 +7,7 @@ let googleAI: GoogleGenerativeAI | null = null;
  * Initialize the Google AI client with the API key
  */
 export function initGoogleAI() {
-  const apiKey = process.env.GOOGLE_AI_API_KEY;
+  const apiKey = process.env.GOOGLE_AI_API_KEY || process.env.GOOGLE_API_KEY;
 
   if (!apiKey) {
     console.warn(

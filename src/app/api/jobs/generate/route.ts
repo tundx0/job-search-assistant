@@ -7,11 +7,18 @@ import {
   convertResumeJSONToText,
   ResumeJSON,
 } from "@/lib/ai/simple-json-generation";
-import { storeFile, generatePDF } from "@/lib/storage";
+import {
+  storeFile,
+  generatePDF,
+  getUserStoragePrefix,
+} from "@/lib/storage";
 import { calculateResumeStrengthWithAI } from "@/lib/ai/resume-scoring";
+import {
+  isMissingApiKeyError,
+  MISSING_API_KEY_MESSAGE,
+} from "@/lib/ai/errors";
 import * as z from "zod";
 
-// Define contact info schema
 const contactInfoSchema = z.object({
   location: z.string().optional(),
   phone: z.string().optional(),
@@ -27,19 +34,18 @@ const generateSchema = z.object({
   contactInfo: contactInfoSchema.optional(),
 });
 
-// AI-based resume strength scoring is now used instead of keyword-based approach
+function jsonError(message: string, status: number) {
+  return NextResponse.json({ message }, { status });
+}
 
 export async function POST(req: Request) {
   try {
-    const session = await getCurrentUser(); // session.user is from NextAuth
+    const session = await getCurrentUser();
 
     if (!session || !session.id) {
-      // Check session and session.id
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return jsonError("Unauthorized", 401);
     }
 
-    // Fetch the full user profile from the database using the id from the session
-    // Define a type that matches only the fields we're selecting
     type UserProfile = {
       id: string;
       email: string;
@@ -52,9 +58,8 @@ export async function POST(req: Request) {
       atsOptimizationEnabled: boolean | null;
     };
 
-    // Use the specific type that matches our selection
     const userFromDb: UserProfile | null = await prisma.user.findUnique({
-      where: { id: session.id }, // Use session.id
+      where: { id: session.id },
       select: {
         id: true,
         email: true,
@@ -65,28 +70,21 @@ export async function POST(req: Request) {
         github: true,
         website: true,
         atsOptimizationEnabled: true,
-        // Include other fields if they are needed by generation logic later, e.g., bio, experience, education, skills
-        // For now, only selecting fields relevant to contactInfo and basic identification
       },
     });
 
     if (!userFromDb) {
-      return NextResponse.json(
-        { message: "User not found in database" },
-        { status: 404 }
-      );
+      return jsonError("User not found in database", 404);
     }
 
     const body = await req.json();
 
-    // Validate input data
     const {
       jobId,
       format,
       contactInfo: requestContactInfo,
     } = generateSchema.parse(body);
 
-    // Construct effective contact information using the full user profile from the database
     const effectiveContactInfo: z.infer<typeof contactInfoSchema> = {
       email: requestContactInfo?.email || userFromDb.email,
       location:
@@ -111,7 +109,6 @@ export async function POST(req: Request) {
           : userFromDb.website ?? undefined,
     };
 
-    // Get the job application
     const jobApplication = await prisma.jobApplication.findUnique({
       where: {
         id: jobId,
@@ -119,85 +116,76 @@ export async function POST(req: Request) {
     });
 
     if (!jobApplication) {
-      return NextResponse.json(
-        { message: "Job application not found" },
-        { status: 404 }
-      );
+      return jsonError("Job application not found", 404);
     }
 
     if (jobApplication.userId !== userFromDb.id) {
-      // Corrected to use userFromDb.id
-      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+      return jsonError("Unauthorized", 403);
     }
 
-    // Generate resume and cover letter
+    const userStoragePath = getUserStoragePrefix(userFromDb.id);
+    const privateStorageOptions = {
+      path: userStoragePath,
+      public: false as const,
+    };
+
     let resume: string;
     let resumeJSON: ResumeJSON | null = null;
 
-    console.log(format);
-
     if (format === "json") {
-      // Generate JSON resume with contact info if provided
       resumeJSON = await generateResumeJSON(
-        userFromDb.id, // Use id from userFromDb
+        userFromDb.id,
         jobApplication.jobDescription,
         jobApplication.jobTitle,
         jobApplication.companyName,
-        effectiveContactInfo, // Pass the merged contact info
-        userFromDb.atsOptimizationEnabled ?? undefined // Pass the user's ATS optimization preference
+        effectiveContactInfo,
+        userFromDb.atsOptimizationEnabled ?? undefined
       );
 
-      // Convert JSON to text for storage and PDF generation
       resume = convertResumeJSONToText(resumeJSON);
     } else {
-      // Generate traditional text resume
       resume = await generateResume(
-        userFromDb.id, // Use id from userFromDb
+        userFromDb.id,
         jobApplication.jobDescription,
         jobApplication.jobTitle,
         jobApplication.companyName,
-        effectiveContactInfo, // Pass the merged contact info
-        userFromDb.atsOptimizationEnabled ?? undefined // Pass the user's ATS optimization preference
+        effectiveContactInfo,
+        userFromDb.atsOptimizationEnabled ?? undefined
       );
     }
 
     const coverLetter = await generateCoverLetter(
-      userFromDb.id, // Use id from userFromDb
+      userFromDb.id,
       jobApplication.jobDescription,
       jobApplication.jobTitle,
       jobApplication.companyName
     );
 
-    // Store the cover letter as a public file
     const coverLetterFile = await storeFile(
       coverLetter,
       `cover-letter-${jobId}.txt`,
-      { public: true } // Set files as public
+      { ...privateStorageOptions, contentType: "text/plain; charset=utf-8" }
     );
     const coverLetterUrl = coverLetterFile.url;
 
-    // If we have JSON resume data, store it as well
     let resumeJSONUrl = null;
     if (resumeJSON) {
       const resumeJSONFile = await storeFile(
         JSON.stringify(resumeJSON, null, 2),
         `resume-${jobId}.json`,
-        { public: true } // Set files as public
+        { ...privateStorageOptions, contentType: "application/json" }
       );
       resumeJSONUrl = resumeJSONFile.url;
     }
 
-    // Calculate resume strength score using AI for more accurate assessment
-    let strengthScore = 50; // Default score
+    let strengthScore = 50;
     try {
-      // First check if we already have insights for this job application
       const existingInsight = await prisma.resumeInsight.findUnique({
         where: {
           jobApplicationId: jobId,
         },
       });
 
-      // Also check if the job application already has a strength score
       const existingJobApp = await prisma.jobApplication.findUnique({
         where: {
           id: jobId,
@@ -207,30 +195,18 @@ export async function POST(req: Request) {
         },
       });
 
-      // If we already have insights and a strength score, use the existing score
       if (existingInsight && existingJobApp?.strengthScore) {
-        console.log(
-          "Using existing strength score:",
-          existingJobApp.strengthScore
-        );
         strengthScore = existingJobApp.strengthScore;
-      }
-      // Only calculate new insights if we don't already have them and have resumeJSON
-      else if (resumeJSON) {
-        console.log("Calculating resume strength score with AI...");
-        // The function now returns a ResumeInsightData object instead of just a number
+      } else if (resumeJSON) {
         const insights = await calculateResumeStrengthWithAI(
           resumeJSON,
           jobApplication.jobDescription,
-          jobApplication.jobTitle
+          jobApplication.jobTitle,
+          userFromDb.id
         );
 
-        // Extract the score
         strengthScore = insights.score;
 
-        console.log(`AI-based strength score: ${strengthScore}`);
-
-        // Store the full insights in the database
         try {
           await prisma.resumeInsight.upsert({
             where: {
@@ -272,53 +248,45 @@ export async function POST(req: Request) {
               skillsFeedback: insights.skillsFeedback || null,
             },
           });
-          console.log("Resume insights stored successfully");
         } catch (insightError) {
           console.error("Error storing resume insights:", insightError);
-          // Continue with the process even if insights storage fails
         }
-      } else {
-        console.log("No JSON resume available, using default score");
       }
     } catch (error) {
+      if (isMissingApiKeyError(error)) {
+        throw error;
+      }
       console.error(
         "Error calculating strength score with AI, using default score:",
         error
       );
-      // Using default score of 50 since we removed the fallback function
     }
 
-    // Generate and store ATS-compatible PDF for resume only
-    // If we have JSON resume data, use it for PDF generation
-    // For resumeJSON, we pass it as is - the generatePDF function already sets public: true internally
-    const resumePdfUrl = resumeJSON
-      ? await generatePDF(resume, `resume-${jobId}.pdf`, resumeJSON)
-      : await generatePDF(resume, `resume-${jobId}.pdf`, { public: true });
+    const resumePdfUrl = await generatePDF(
+      resume,
+      `resume-${jobId}.pdf`,
+      resumeJSON ?? undefined,
+      privateStorageOptions
+    );
 
-    // We no longer generate PDFs for cover letters as requested
-
-    // Variable to store the updated job application
     let updatedJobApplication;
 
     try {
-      // Update with only PDF and JSON fields for resume, and text for cover letter
       updatedJobApplication = await prisma.jobApplication.update({
         where: {
           id: jobId,
         },
         data: {
-          tailoredResume: resumePdfUrl, // Use PDF URL as the main resume URL
+          tailoredResume: resumePdfUrl,
           coverLetter: coverLetterUrl,
           tailoredResumePdf: resumePdfUrl,
-          coverLetterPdf: null, // No longer storing cover letter PDFs
+          coverLetterPdf: null,
           tailoredResumeJSON: resumeJSONUrl,
           status: "submitted",
-          strengthScore: strengthScore, // Add the calculated strength score
+          strengthScore: strengthScore,
         },
       });
     } catch (error) {
-      // If that fails (likely because the schema hasn't been updated yet),
-      // fall back to updating without PDF fields
       console.error("Error updating job application with PDF fields:", error);
 
       updatedJobApplication = await prisma.jobApplication.update({
@@ -326,37 +294,31 @@ export async function POST(req: Request) {
           id: jobId,
         },
         data: {
-          tailoredResume: resumePdfUrl, // Use PDF URL as the main resume URL
+          tailoredResume: resumePdfUrl,
           coverLetter: coverLetterUrl,
           status: "submitted",
         },
       });
     }
 
-    // Create a response object with the data we know exists
     const responseData = {
       message: "Documents generated successfully",
       jobApplication: {
         id: jobId,
         status: "submitted",
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any, // Use 'as any' to bypass TypeScript checking
+      } as any,
     };
 
-    // Add data from the updated job application to the response
     if (updatedJobApplication) {
       responseData.jobApplication.id = updatedJobApplication.id;
       responseData.jobApplication.status = updatedJobApplication.status;
     }
 
-    // Include the cover letter URL
     responseData.jobApplication.coverLetter = coverLetterUrl;
-
-    // Always include the PDF URL and strength score in the response
     responseData.jobApplication.tailoredResumePdf = resumePdfUrl;
-    responseData.jobApplication.strengthScore = strengthScore; // Include strength score
+    responseData.jobApplication.strengthScore = strengthScore;
 
-    // Include JSON URL if available
     if (resumeJSONUrl) {
       responseData.jobApplication.tailoredResumeJSON = resumeJSONUrl;
     }
@@ -365,6 +327,17 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Document generation error:", error);
 
+    if (isMissingApiKeyError(error)) {
+      return jsonError(error.message || MISSING_API_KEY_MESSAGE, 400);
+    }
+
+    if (
+      error instanceof Error &&
+      /OPENAI_API_KEY environment variable is missing/i.test(error.message)
+    ) {
+      return jsonError(MISSING_API_KEY_MESSAGE, 400);
+    }
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { message: "Invalid input data", errors: error.errors },
@@ -372,9 +345,6 @@ export async function POST(req: Request) {
       );
     }
 
-    return NextResponse.json(
-      { message: "Something went wrong. Please try again." },
-      { status: 500 }
-    );
+    return jsonError("Something went wrong. Please try again.", 500);
   }
 }

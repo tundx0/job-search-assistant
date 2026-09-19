@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
-import { getAIProvider } from "./provider";
 import { generateTextWithUserKey } from "./enhanced-provider";
+import { isMissingApiKeyError } from "./errors";
 import {
   ApiProvider,
   getUserAiModelPreference,
@@ -310,11 +310,8 @@ export async function generateResumeJSON(
   };
 
   try {
-    // Get user's preferred AI provider if available
     const userPreferredProvider = await getUserAiModelPreference(userId);
-
-    // Default to system provider if user has no preference
-    const provider = userPreferredProvider || getAIProvider();
+    const provider = userPreferredProvider;
 
     let prompt = `
       You are a professional resume writer. Create a tailored, ATS-compatible resume for ${
@@ -610,6 +607,9 @@ export async function generateResumeJSON(
 
     return resumeJSON;
   } catch (error) {
+    if (isMissingApiKeyError(error)) {
+      throw error;
+    }
     console.error("Error generating resume JSON:", error);
     throw new Error("Failed to generate resume JSON. Please try again later.");
   }

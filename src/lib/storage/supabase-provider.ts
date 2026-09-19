@@ -1,4 +1,5 @@
 import { IStorageProvider, StorageOptions, FileInfo } from "./types";
+import { sdkBodyToBuffer } from "./bytes";
 import {
   S3Client,
   PutObjectCommand,
@@ -109,12 +110,20 @@ export class SupabaseStorageProvider implements IStorageProvider {
   }
 
   /**
-   * Download a file from storage using AWS S3 SDK
+   * Download a file from storage using AWS S3 SDK as UTF-8 text
    */
   async downloadFile(
     fileKey: string,
     options?: StorageOptions
   ): Promise<string> {
+    const buffer = await this.downloadFileBuffer(fileKey, options);
+    return buffer.toString("utf-8");
+  }
+
+  async downloadFileBuffer(
+    fileKey: string,
+    options?: StorageOptions
+  ): Promise<Buffer> {
     const bucket = options?.bucket || this.defaultBucket;
 
     try {
@@ -129,8 +138,7 @@ export class SupabaseStorageProvider implements IStorageProvider {
         throw new Error("File not found or empty");
       }
 
-      const streamReader = response.Body.transformToString();
-      return await streamReader;
+      return await sdkBodyToBuffer(response.Body);
     } catch (error) {
       console.error("Error downloading file using S3 SDK:", error);
       throw new Error(`Failed to download file: ${(error as Error).message}`);

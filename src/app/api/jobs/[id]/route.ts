@@ -137,6 +137,9 @@ export async function DELETE(
       `resume-${jobId}.json`,
       `resume-${jobId}.pdf`,
       `cover-letter-${jobId}.txt`,
+      `users/${user.id}/resume-${jobId}.json`,
+      `users/${user.id}/resume-${jobId}.pdf`,
+      `users/${user.id}/cover-letter-${jobId}.txt`,
     ];
 
     const deletePromises = filesToDelete.map(async (fileKey) => {

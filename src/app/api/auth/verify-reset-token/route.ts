@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { isAfter } from "date-fns";
+import { hashResetToken } from "@/lib/auth/reset-token";
 
 export async function GET(request: Request) {
   try {
@@ -10,48 +11,43 @@ export async function GET(request: Request) {
 
     if (!token || !email) {
       return NextResponse.json(
-        { error: "Token and email are required" },
+        { message: "Token and email are required" },
         { status: 400 }
       );
     }
 
-    // Find the password reset record
+    const tokenHash = hashResetToken(token);
+
     const passwordReset = await prisma.passwordReset.findFirst({
       where: {
-        token,
+        token: tokenHash,
         email,
       },
     });
 
-    // Check if the token exists and is valid
     if (!passwordReset) {
       return NextResponse.json(
-        { error: "Invalid or expired reset token" },
+        { message: "Invalid or expired reset token" },
         { status: 400 }
       );
     }
 
-    // Check if the token has expired
     if (isAfter(new Date(), new Date(passwordReset.expires))) {
-      // Delete the expired token
       await prisma.passwordReset.delete({
         where: { id: passwordReset.id },
       });
-      
+
       return NextResponse.json(
-        { error: "Reset token has expired" },
+        { message: "Reset token has expired" },
         { status: 400 }
       );
     }
 
-    return NextResponse.json(
-      { valid: true },
-      { status: 200 }
-    );
+    return NextResponse.json({ valid: true }, { status: 200 });
   } catch (error) {
     console.error("Token verification error:", error);
     return NextResponse.json(
-      { error: "Failed to verify reset token" },
+      { message: "Failed to verify reset token" },
       { status: 500 }
     );
   }

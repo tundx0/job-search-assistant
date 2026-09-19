@@ -6,21 +6,19 @@ import {
   ApiProvider,
 } from "@/lib/api-keys/user-api-keys";
 import { generateWithGoogleAI } from "./google-ai";
+import { MissingApiKeyError, isMissingApiKeyError } from "./errors";
 
-// Define model configurations for each provider
-// Export functions for testing
 export const generateText = generateTextWithUserKey;
+export { MissingApiKeyError, isMissingApiKeyError };
 
-// Get all available models across all providers
 export function getAvailableModels(apiKeys?: { [key: string]: string }) {
-  // If apiKeys is provided, filter models based on available keys
   if (apiKeys) {
     const availableProviders = Object.keys(apiKeys);
-    // Include system providers that don't need API keys
     if (process.env.OPENAI_API_KEY) availableProviders.push("openai");
-    if (process.env.GOOGLE_API_KEY) availableProviders.push("google");
+    if (process.env.GOOGLE_API_KEY || process.env.GOOGLE_AI_API_KEY) {
+      availableProviders.push("google");
+    }
 
-    // Only return models for available providers
     const models: Array<{
       id: string;
       name: string;
@@ -35,16 +33,13 @@ export function getAvailableModels(apiKeys?: { [key: string]: string }) {
     return models;
   }
 
-  // If no apiKeys provided, return all models
   return Object.values(AI_MODELS).flat();
 }
 
-// Get models for a specific provider
 export function getProviderModels(provider: ApiProvider) {
   return AI_MODELS[provider] || [];
 }
 
-// Get display name for a model
 export function getModelDisplayName(modelId: string): string {
   for (const provider in AI_MODELS) {
     const model = AI_MODELS[provider as ApiProvider].find(
@@ -52,7 +47,7 @@ export function getModelDisplayName(modelId: string): string {
     );
     if (model) return model.name;
   }
-  return modelId; // Return the ID if no display name is found
+  return modelId;
 }
 
 export const AI_MODELS = {
@@ -154,42 +149,31 @@ export async function generateTextWithUserKey(
 ): Promise<string> {
   const { temperature = 0.7, maxTokens = 2000 } = options;
 
-  // Get user's preferred provider or use the one specified in options
   let provider = options.provider;
   let preferredModelId = null;
 
   if (!provider) {
     const userPreference = await getUserAiModelPreference(userId);
-    provider = userPreference.provider || "openai"; // Default to OpenAI if no preference
-    preferredModelId = userPreference.modelId; // Get the user's preferred model ID
+    provider = userPreference.provider || "openai";
+    preferredModelId = userPreference.modelId;
   }
-  
-  // Ensure provider is a string (ApiProvider type), not an object
-  if (typeof provider === 'object' && provider !== null) {
-    provider = (provider as {provider: ApiProvider}).provider || "openai";
-  }
-  
-  // Ensure provider is defined and is a valid ApiProvider
-  const safeProvider = provider as ApiProvider;
 
-  // Get the user's API key for the selected provider
+  if (typeof provider === "object" && provider !== null) {
+    provider = (provider as { provider: ApiProvider }).provider || "openai";
+  }
+
+  const safeProvider = provider as ApiProvider;
   const apiKey = await getUserApiKey(userId, safeProvider);
 
-  // If user has no API key for this provider, fall back to system API key
   if (!apiKey) {
-    // Use the system's default provider
     return generateTextWithSystemKey(prompt, systemPrompt, {
       temperature,
       maxTokens,
     });
   }
 
-  // Get the model ID to use - priority: options > user preference > default
   const modelId =
     options.modelId || preferredModelId || getDefaultModelForProvider(safeProvider);
-
-  // Log the model being used for generation
-  console.log(`Generating content with ${safeProvider} model: ${modelId}`);
 
   try {
     switch (safeProvider) {
@@ -233,6 +217,9 @@ export async function generateTextWithUserKey(
         throw new Error(`Unsupported AI provider: ${safeProvider}`);
     }
   } catch (error) {
+    if (isMissingApiKeyError(error)) {
+      throw error;
+    }
     console.error(`Error generating text with ${safeProvider}:`, error);
     throw new Error(
       `Failed to generate content with ${safeProvider}. Please check your API key or try a different provider.`
@@ -253,7 +240,6 @@ export async function generateTextWithSystemKey(
 ): Promise<string> {
   const { temperature = 0.7, maxTokens = 2000 } = options;
 
-  // Check if OpenAI system key is available
   if (process.env.OPENAI_API_KEY) {
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
@@ -272,21 +258,13 @@ export async function generateTextWithSystemKey(
     return response.choices[0].message.content || "";
   }
 
-  // If no OpenAI key, try Google AI
-  if (process.env.GOOGLE_API_KEY) {
-    // The generateWithGoogleAI function uses the environment variable internally
-    // and has a different signature than our other provider functions
+  if (process.env.GOOGLE_API_KEY || process.env.GOOGLE_AI_API_KEY) {
     return generateWithGoogleAI(prompt, systemPrompt, temperature, maxTokens);
   }
 
-  throw new Error(
-    "No system AI provider is available. Please configure an API key in your settings."
-  );
+  throw new MissingApiKeyError();
 }
 
-/**
- * Generate text with OpenAI using user's API key
- */
 export async function generateWithOpenAI(
   apiKey: string,
   modelId: string,
@@ -312,9 +290,6 @@ export async function generateWithOpenAI(
   return response.choices[0].message.content || "";
 }
 
-/**
- * Generate text with Google AI using user's API key
- */
 export async function generateWithGoogleAIKey(
   apiKey: string,
   modelId: string,
@@ -324,11 +299,8 @@ export async function generateWithGoogleAIKey(
   maxTokens: number
 ): Promise<string> {
   const googleAI = new GoogleGenerativeAI(apiKey);
-
-  // Get the model
   const model = googleAI.getGenerativeModel({ model: modelId });
 
-  // Create a chat session
   const chat = model.startChat({
     history: [
       {
@@ -346,16 +318,10 @@ export async function generateWithGoogleAIKey(
     },
   });
 
-  // Generate the response
   const result = await chat.sendMessage(prompt);
-  const response = result.response;
-
-  return response.text();
+  return result.response.text();
 }
 
-/**
- * Generate text with Anthropic Claude using user's API key
- */
 export async function generateWithAnthropic(
   apiKey: string,
   modelId: string,
@@ -364,8 +330,6 @@ export async function generateWithAnthropic(
   temperature: number,
   maxTokens: number
 ): Promise<string> {
-  // Note: We would need to install the Anthropic SDK
-  // This is a placeholder implementation
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -397,9 +361,6 @@ export async function generateWithAnthropic(
   }
 }
 
-/**
- * Generate text with DeepSeek using user's API key
- */
 export async function generateWithDeepseek(
   apiKey: string,
   modelId: string,
@@ -408,8 +369,6 @@ export async function generateWithDeepseek(
   temperature: number,
   maxTokens: number
 ): Promise<string> {
-  // Note: We would need to install the DeepSeek SDK or use their API directly
-  // This is a placeholder implementation
   try {
     const response = await fetch(
       "https://api.deepseek.com/v1/chat/completions",
@@ -445,9 +404,6 @@ export async function generateWithDeepseek(
   }
 }
 
-/**
- * Get the default model ID for a provider
- */
 export function getDefaultModelForProvider(provider: ApiProvider): string {
   switch (provider) {
     case "openai":

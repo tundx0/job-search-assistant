@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth/session";
-import fs from "fs";
 import path from "path";
+import { getCurrentUser } from "@/lib/auth/session";
+import { retrieveFileBytes } from "@/lib/storage";
+import {
+  getContentTypeForFile,
+  parseStorageBucketParam,
+  parseStorageProviderParam,
+  resolveOwnedStorageKey,
+} from "@/lib/storage/paths";
 
-/**
- * API endpoint to get file content from storage
- *
- * Query parameters:
- * - name: Name of the file to retrieve
- */
+function isNotFoundError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /not found|NoSuchKey|NotFound/i.test(message);
+}
+
 export async function GET(request: Request) {
   try {
     const session = await getCurrentUser();
@@ -17,7 +22,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // Get query parameters
     const { searchParams } = new URL(request.url);
     const fileName = searchParams.get("name");
 
@@ -28,37 +32,61 @@ export async function GET(request: Request) {
       );
     }
 
-    // Define the file path
-    const filePath = path.join(process.cwd(), "storage", fileName);
+    const allowAdmin = session.role === "ADMIN";
+    const fileKey = resolveOwnedStorageKey(fileName, session.id, {
+      allowAdmin,
+    });
 
-    // Check if file exists
-    if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ message: "File not found" }, { status: 404 });
+    if (!fileKey) {
+      return NextResponse.json({ message: "Invalid file path" }, { status: 400 });
     }
 
-    // Read file content
-    const content = fs.readFileSync(filePath, "utf-8");
-
-    // Determine content type based on file extension
-    const extension = path.extname(fileName).toLowerCase();
-    let contentType = "text/plain";
-
-    if (extension === ".json") {
-      contentType = "application/json";
-    } else if (extension === ".md") {
-      contentType = "text/markdown";
+    const providerParam = searchParams.get("provider");
+    const provider = parseStorageProviderParam(providerParam);
+    if (providerParam && !provider) {
+      return NextResponse.json({ message: "Invalid provider" }, { status: 400 });
     }
 
-    // Return the file content
-    return NextResponse.json({
-      content,
-      contentType,
-      fileName,
+    const bucketParam = searchParams.get("bucket");
+    const bucket = parseStorageBucketParam(bucketParam);
+    if (bucketParam && bucket == null) {
+      return NextResponse.json({ message: "Invalid bucket" }, { status: 400 });
+    }
+
+    let body: Buffer;
+    try {
+      body = await retrieveFileBytes(fileKey, {
+        provider,
+        bucket: bucket || undefined,
+      });
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        return NextResponse.json({ message: "File not found" }, { status: 404 });
+      }
+      console.error("Error reading file:", error);
+      return NextResponse.json(
+        { message: "Failed to read file" },
+        { status: 500 }
+      );
+    }
+
+    const contentType = getContentTypeForFile(fileKey);
+    const download = searchParams.get("download") === "1";
+    const filename = path.basename(fileKey);
+
+    return new NextResponse(new Uint8Array(body), {
+      status: 200,
+      headers: {
+        "Content-Type": contentType,
+        "Content-Disposition": `${download ? "attachment" : "inline"}; filename="${filename}"`,
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
+      },
     });
   } catch (error) {
     console.error("Error reading file:", error);
     return NextResponse.json(
-      { message: "Failed to read file", error: String(error) },
+      { message: "Failed to read file" },
       { status: 500 }
     );
   }

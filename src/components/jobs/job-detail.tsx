@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, use } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { JobApplication, JobApplicationStatus } from "@/types";
 import { ResumeStrengthScore } from "./resume-strength-score";
@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Trash2 } from "lucide-react";
 import { FileViewerModal } from "@/components/ui/file-viewer-modal";
+
+const inFlightGeneration = new Set<string>();
 
 // Document actions component for file operations
 function DocumentActions({
@@ -99,9 +101,6 @@ export function JobDetail({ jobApplication }: JobDetailProps) {
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [status, setStatus] = useState(jobApplication.status);
   const [showContactForm, setShowContactForm] = useState(false);
-  // Track if this is the first load
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
-  // Check if documents are already generated
   const hasDocuments =
     jobApplication.tailoredResume && jobApplication.coverLetter;
 
@@ -145,11 +144,11 @@ export function JobDetail({ jobApplication }: JobDetailProps) {
   // Function to generate documents with contact info
   const generateDocuments = useCallback(
     async (contactInfo?: ContactInfo) => {
-      if (hasDocuments) {
+      if (hasDocuments || inFlightGeneration.has(jobApplication.id)) {
         return;
       }
 
-      // Reset error state
+      inFlightGeneration.add(jobApplication.id);
       setGenerationError(null);
       setIsGenerating(true);
 
@@ -166,14 +165,20 @@ export function JobDetail({ jobApplication }: JobDetailProps) {
           }),
         });
 
-        if (!response.ok) {
-          const error = await response.text();
-          throw new Error(error || "Failed to generate documents");
+        let payload: { message?: string; resumePdfUrl?: string; coverLetterPdfUrl?: string } | null =
+          null;
+        try {
+          payload = await response.json();
+        } catch {
+          payload = null;
         }
 
-        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(
+            payload?.message || "Failed to generate documents"
+          );
+        }
 
-        // Hide contact form if it was shown
         setShowContactForm(false);
 
         toast({
@@ -181,16 +186,14 @@ export function JobDetail({ jobApplication }: JobDetailProps) {
           description: "Resume and cover letter generated successfully!",
         });
 
-        // Refresh the page to show the updated job application
         router.refresh();
 
-        // If we have PDF URLs, open them in new tabs
-        if (result.resumePdfUrl) {
-          window.open(result.resumePdfUrl, "_blank");
+        if (payload?.resumePdfUrl) {
+          window.open(payload.resumePdfUrl, "_blank");
         }
 
-        if (result.coverLetterPdfUrl) {
-          window.open(result.coverLetterPdfUrl, "_blank");
+        if (payload?.coverLetterPdfUrl) {
+          window.open(payload.coverLetterPdfUrl, "_blank");
         }
       } catch (error: unknown) {
         console.error("Error generating documents:", error);
@@ -203,19 +206,42 @@ export function JobDetail({ jobApplication }: JobDetailProps) {
           variant: "destructive",
         });
       } finally {
+        inFlightGeneration.delete(jobApplication.id);
         setIsGenerating(false);
       }
     },
-    [
-      hasDocuments,
-      jobApplication.id,
-      router,
-      setIsGenerating,
-      setShowContactForm,
-      setGenerationError,
-      toast,
-    ]
+    [hasDocuments, jobApplication.id, router, toast]
   );
+
+  useEffect(() => {
+    if (hasDocuments) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function maybeStartGeneration() {
+      const hasContactInfo = await checkUserContactInfo();
+      if (cancelled) {
+        return;
+      }
+
+      if (hasContactInfo) {
+        await generateDocuments();
+      } else {
+        setShowContactForm(true);
+      }
+    }
+
+    void maybeStartGeneration();
+
+    return () => {
+      cancelled = true;
+    };
+    // One-shot contact check / auto-start per job. generateDocuments is
+    // guarded by inFlightGeneration so overlapping calls are safe.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasDocuments, jobApplication.id]);
 
   // Function to update job application status
   async function updateStatus(newStatus: typeof jobApplication.status) {
@@ -359,28 +385,6 @@ export function JobDetail({ jobApplication }: JobDetailProps) {
       printWindow.focus();
       printWindow.print();
     }
-  }
-
-  // Check if we need to generate documents
-  // Only run this logic on first load when documents don't exist
-  if (isFirstLoad && !hasDocuments && !isGenerating && !showContactForm) {
-    // Create a promise to handle the contact info check
-    const contactInfoPromise = (async () => {
-      setIsFirstLoad(false);
-      const hasContactInfo = await checkUserContactInfo();
-      
-      if (hasContactInfo) {
-        // If user already has contact info, automatically generate documents
-        generateDocuments();
-      } else {
-        // Only show contact form if user doesn't have contact info
-        setShowContactForm(true);
-      }
-      return null; // Return value doesn't matter, we're using side effects
-    })();
-    
-    // Use the promise with the use() hook
-    use(contactInfoPromise);
   }
 
   if (!hasDocuments) {

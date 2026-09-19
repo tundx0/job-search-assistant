@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth/session";
 import fs from "fs";
 import path from "path";
+import { getCurrentUser } from "@/lib/auth/session";
+import {
+  getStorageRoot,
+  getUserStoragePrefix,
+  resolveStorageFsPath,
+} from "@/lib/storage/paths";
 
-/**
- * API endpoint to list files in storage
- *
- * Query parameters:
- * - type: Filter by file type (e.g., 'document', 'resume', 'coverLetter')
- */
 export async function GET(request: Request) {
   try {
     const session = await getCurrentUser();
@@ -17,22 +16,24 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // Get query parameters
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type");
 
-    // Define the storage directory
-    const storageDir = path.join(process.cwd(), "storage");
+    const storageRoot = getStorageRoot();
+    const userPrefix = getUserStoragePrefix(session.id);
+    const userDir = resolveStorageFsPath(storageRoot, userPrefix);
 
-    // Ensure the directory exists
-    if (!fs.existsSync(storageDir)) {
+    if (!userDir || !fs.existsSync(userDir) || !fs.statSync(userDir).isDirectory()) {
       return NextResponse.json({ files: [] });
     }
 
-    // Read all files in the directory
-    const files = fs.readdirSync(storageDir);
+    const files = fs
+      .readdirSync(userDir)
+      .filter((file) => {
+        const fullPath = path.join(userDir, file);
+        return fs.statSync(fullPath).isFile();
+      });
 
-    // Filter files based on type if specified
     let filteredFiles = files;
     if (type) {
       if (type === "document") {
@@ -49,12 +50,11 @@ export async function GET(request: Request) {
       }
     }
 
-    // Return the list of files
     return NextResponse.json({ files: filteredFiles });
   } catch (error) {
     console.error("Error listing files:", error);
     return NextResponse.json(
-      { message: "Failed to list files", error: String(error) },
+      { message: "Failed to list files" },
       { status: 500 }
     );
   }

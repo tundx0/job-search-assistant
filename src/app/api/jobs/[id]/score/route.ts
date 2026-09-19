@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import { calculateResumeStrengthWithAI } from "@/lib/ai/resume-scoring";
+import { retrieveFile } from "@/lib/storage";
+import {
+  parseStorageLocationFromUrl,
+  resolveJobOwnedStorageKey,
+} from "@/lib/storage/paths";
 
 /**
  * Calculate and update the strength score for an existing job application
@@ -47,29 +52,34 @@ export async function POST(
       );
     }
 
-    // Get the JSON resume content from the URL
     let resumeJSON;
     try {
-      // If tailoredResumeJSON is a URL, fetch the content directly
-      if (jobApplication.tailoredResumeJSON.startsWith("http")) {
-        console.log(
-          `Fetching resume JSON from URL: ${jobApplication.tailoredResumeJSON}`
+      const stored = jobApplication.tailoredResumeJSON;
+      const location = parseStorageLocationFromUrl(stored);
+
+      if (location) {
+        const ownedKey = resolveJobOwnedStorageKey(
+          location.key,
+          user.id,
+          jobId,
+          { allowAdmin: user.role === "ADMIN" }
         );
-
-        // Fetch the JSON content directly from the URL
-        const response = await fetch(jobApplication.tailoredResumeJSON);
-
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch resume JSON: ${response.status} ${response.statusText}`
+        if (!ownedKey) {
+          return NextResponse.json(
+            { message: "Unauthorized" },
+            { status: 403 }
           );
         }
-
-        // Parse the JSON response
-        resumeJSON = await response.json();
+        resumeJSON = JSON.parse(
+          await retrieveFile(ownedKey, {
+            provider: location.provider,
+            bucket: location.bucket,
+          })
+        );
+      } else if (stored.trim().startsWith("{")) {
+        resumeJSON = JSON.parse(stored);
       } else {
-        // If it's not a URL, try parsing it directly (backward compatibility)
-        resumeJSON = JSON.parse(jobApplication.tailoredResumeJSON);
+        throw new Error("Unsupported resume JSON location");
       }
     } catch (error) {
       console.error("Error getting or parsing JSON resume:", error);
@@ -83,7 +93,8 @@ export async function POST(
     const insights = await calculateResumeStrengthWithAI(
       resumeJSON,
       jobApplication.jobDescription,
-      jobApplication.jobTitle
+      jobApplication.jobTitle,
+      user.id
     );
 
     // First, update the job application with just the score

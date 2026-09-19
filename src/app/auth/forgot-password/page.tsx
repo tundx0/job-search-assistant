@@ -39,6 +39,7 @@ export default function ForgotPasswordPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [devResetLink, setDevResetLink] = useState<string | null>(null);
 
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -62,20 +63,22 @@ export default function ForgotPasswordPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || "Something went wrong");
+        throw new Error(result.message || result.error || "Something went wrong");
       }
 
+      setDevResetLink(result.resetLink || null);
       setEmailSent(true);
       toast({
         title: "Success",
-        description:
-          "If an account exists with that email, we've sent password reset instructions.",
+        description: result.message
+          || "If an account exists with that email, we've sent password reset instructions.",
       });
     } catch (error) {
       console.error("Forgot password error:", error);
       toast({
         title: "Error",
-        description: "Something went wrong. Please try again.",
+        description:
+          error instanceof Error ? error.message : "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -92,18 +95,29 @@ export default function ForgotPasswordPage() {
               We&apos;ve sent password reset instructions to your email address.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
             <p className="text-xs sm:text-sm text-muted-foreground">
               If you don&apos;t see the email in your inbox, check your spam
               folder. If you still don&apos;t see it, you can try requesting
               another reset email.
             </p>
+            {devResetLink && (
+              <p className="text-xs sm:text-sm break-all">
+                Email is not configured. Development reset link:{" "}
+                <a className="text-primary underline" href={devResetLink}>
+                  {devResetLink}
+                </a>
+              </p>
+            )}
           </CardContent>
           <CardFooter>
             <Button
               variant="outline"
               className="w-full"
-              onClick={() => setEmailSent(false)}
+              onClick={() => {
+                setEmailSent(false);
+                setDevResetLink(null);
+              }}
             >
               Try again
             </Button>
