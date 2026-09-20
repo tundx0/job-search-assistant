@@ -99,9 +99,14 @@ export interface IStorageProvider {
   uploadFile(content: string | Buffer, fileName: string, options?: StorageOptions): Promise<FileInfo>;
   
   /**
-   * Download a file from the storage system
+   * Download a file from the storage system as UTF-8 text
    */
   downloadFile(fileKey: string, options?: StorageOptions): Promise<string>;
+
+  /**
+   * Download a file from the storage system as raw bytes
+   */
+  downloadFileBuffer(fileKey: string, options?: StorageOptions): Promise<Buffer>;
   
   /**
    * Delete a file from the storage system

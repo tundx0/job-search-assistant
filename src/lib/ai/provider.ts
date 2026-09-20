@@ -1,31 +1,34 @@
 import OpenAI from "openai";
 import { generateWithGoogleAI, initGoogleAI } from "./google-ai";
+import { MissingApiKeyError } from "./errors";
 
-// AI Provider types
 export type AIProvider = "openai" | "google";
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let openai: OpenAI | null = null;
 
-// Initialize Google AI
-initGoogleAI();
+function getOpenAIClient(): OpenAI {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new MissingApiKeyError();
+  }
+
+  if (!openai) {
+    openai = new OpenAI({ apiKey });
+  }
+
+  return openai;
+}
 
 /**
  * Get the currently configured AI provider based on environment variables
  */
 export function getAIProvider(): AIProvider {
-  // Check if Google AI is explicitly enabled
   const useGoogleAI = process.env.USE_GOOGLE_AI === "true";
-  
-  // Check if OpenAI is available
   const openaiAvailable = !!process.env.OPENAI_API_KEY;
-  
-  // Check if Google AI is available
-  const googleAIAvailable = !!process.env.GOOGLE_AI_API_KEY;
-  
-  // Determine which provider to use
+  const googleAIAvailable = !!(
+    process.env.GOOGLE_AI_API_KEY || process.env.GOOGLE_API_KEY
+  );
+
   if (useGoogleAI && googleAIAvailable) {
     return "google";
   } else if (openaiAvailable) {
@@ -33,7 +36,6 @@ export function getAIProvider(): AIProvider {
   } else if (googleAIAvailable) {
     return "google";
   } else {
-    // Default to OpenAI even if not available (will fail gracefully)
     return "openai";
   }
 }
@@ -55,31 +57,36 @@ export async function generateText(
     maxTokens = 2000,
     provider = getAIProvider(),
   } = options;
-  
+
   try {
     if (provider === "google") {
+      initGoogleAI();
       return await generateWithGoogleAI(
         prompt,
         systemPrompt,
         temperature,
         maxTokens
       );
-    } else {
-      // Use OpenAI
-      const response = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: prompt }
-        ],
-        temperature,
-        max_tokens: maxTokens,
-      });
-      
-      return response.choices[0].message.content || "";
     }
+
+    const response = await getOpenAIClient().chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt },
+      ],
+      temperature,
+      max_tokens: maxTokens,
+    });
+
+    return response.choices[0].message.content || "";
   } catch (error) {
+    if (error instanceof MissingApiKeyError) {
+      throw error;
+    }
     console.error(`Error generating text with ${provider}:`, error);
-    throw new Error(`Failed to generate content with ${provider}. Please try again later.`);
+    throw new Error(
+      `Failed to generate content with ${provider}. Please try again later.`
+    );
   }
 }

@@ -177,24 +177,25 @@ export default function TemplatesPage() {
         `/api/storage/file?name=${encodeURIComponent(fileName)}`
       );
       if (response.ok) {
-        const data = await response.json();
+        const content = await response.text();
 
         if (fileName.endsWith(".json")) {
-          setJsonInput(data.content);
-          handleJsonChange(data.content);
+          setJsonInput(content);
+          handleJsonChange(content);
           setActiveTab("json");
 
-          // Extract name from JSON if possible
           try {
-            const jsonData = JSON.parse(data.content);
+            const jsonData = JSON.parse(content);
             if (jsonData.name) {
               setName(jsonData.name);
+            } else if (jsonData.header?.name) {
+              setName(jsonData.header.name);
             }
           } catch (e) {
             throw new Error("Failed to parse JSON", e as Error);
           }
         } else {
-          setTextInput(data.content);
+          setTextInput(content);
           setActiveTab("text");
         }
 

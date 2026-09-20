@@ -6,6 +6,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { IStorageProvider, StorageOptions, FileInfo } from "./types";
+import { sdkBodyToBuffer } from "./bytes";
 
 /**
  * AWS S3 Storage Provider
@@ -88,12 +89,20 @@ export class AwsStorageProvider implements IStorageProvider {
   }
 
   /**
-   * Download a file from AWS S3
+   * Download a file from AWS S3 as UTF-8 text
    */
   async downloadFile(
     fileKey: string,
     options?: StorageOptions
   ): Promise<string> {
+    const buffer = await this.downloadFileBuffer(fileKey, options);
+    return buffer.toString("utf-8");
+  }
+
+  async downloadFileBuffer(
+    fileKey: string,
+    options?: StorageOptions
+  ): Promise<Buffer> {
     const bucket = options?.bucket || this.defaultBucket;
 
     try {
@@ -108,23 +117,7 @@ export class AwsStorageProvider implements IStorageProvider {
         throw new Error("File body is empty");
       }
 
-      if (response.Body instanceof Blob) {
-        return await response.Body.text();
-      } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const streamToString = (stream: any): Promise<string> => {
-          return new Promise((resolve, reject) => {
-            const chunks: Buffer[] = [];
-            stream.on("data", (chunk: Buffer) => chunks.push(chunk));
-            stream.on("error", reject);
-            stream.on("end", () =>
-              resolve(Buffer.concat(chunks).toString("utf-8"))
-            );
-          });
-        };
-
-        return await streamToString(response.Body);
-      }
+      return await sdkBodyToBuffer(response.Body);
     } catch (error) {
       console.error("Error downloading file from AWS S3:", error);
       throw new Error(
