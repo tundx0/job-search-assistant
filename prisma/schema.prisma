@@ -32,11 +32,6 @@ model User {
   accounts       Account[]
   sessions       Session[]
   apiKeys        UserApiKey[]
-  // Link to the OAuth authorization server subject, set when an account is
-  // first connected to an MCP client. Tokens are resolved through this, never
-  // by email: an unverified email claim would otherwise be an account takeover.
-  authSubject    String?         @unique
-  authIssuer     String?
   aiModelPreference String?       // The preferred AI model to use (openai, google, anthropic, deepseek)
   aiModelId       String?        // The specific model ID within the provider (e.g., gpt-4, gemini-pro)
   atsOptimizationEnabled Boolean @default(false) // Toggle for ATS optimization features
