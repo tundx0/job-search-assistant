@@ -26,8 +26,9 @@ export function getAvailableModels(apiKeys?: { [key: string]: string }) {
       provider: string;
     }> = [];
     availableProviders.forEach((provider) => {
-      if (AI_MODELS[provider as ApiProvider]) {
-        models.push(...AI_MODELS[provider as ApiProvider]);
+      const typedProvider = provider as ApiProvider;
+      if (typedProvider !== "mcp" && AI_MODELS[typedProvider as keyof typeof AI_MODELS]) {
+        models.push(...AI_MODELS[typedProvider as keyof typeof AI_MODELS]);
       }
     });
     return models;
@@ -37,12 +38,13 @@ export function getAvailableModels(apiKeys?: { [key: string]: string }) {
 }
 
 export function getProviderModels(provider: ApiProvider) {
-  return AI_MODELS[provider] || [];
+  if (provider === "mcp") return [];
+  return AI_MODELS[provider as keyof typeof AI_MODELS] || [];
 }
 
 export function getModelDisplayName(modelId: string): string {
   for (const provider in AI_MODELS) {
-    const model = AI_MODELS[provider as ApiProvider].find(
+    const model = AI_MODELS[provider as keyof typeof AI_MODELS].find(
       (m) => m.id === modelId
     );
     if (model) return model.name;
