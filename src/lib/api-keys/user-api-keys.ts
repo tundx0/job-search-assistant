@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { encryptData, decryptData } from "@/lib/encryption";
 
-export type ApiProvider = "openai" | "google" | "anthropic" | "deepseek";
+export type ApiProvider = "openai" | "google" | "anthropic" | "deepseek" | "mcp";
 
 /**
  * Save a user's API key for a specific provider

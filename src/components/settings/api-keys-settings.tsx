@@ -32,6 +32,7 @@ interface ApiKeyState {
   google: string;
   anthropic: string;
   deepseek: string;
+  mcp: string;
 }
 
 interface MaskedKeyState {
@@ -39,6 +40,7 @@ interface MaskedKeyState {
   google: string;
   anthropic: string;
   deepseek: string;
+  mcp: string;
 }
 
 interface EditingState {
@@ -46,6 +48,7 @@ interface EditingState {
   google: boolean;
   anthropic: boolean;
   deepseek: boolean;
+  mcp: boolean;
 }
 
 interface ApiKeyVisibility {
@@ -53,6 +56,7 @@ interface ApiKeyVisibility {
   google: boolean;
   anthropic: boolean;
   deepseek: boolean;
+  mcp: boolean;
 }
 
 export function ApiKeysSettings() {
@@ -61,6 +65,7 @@ export function ApiKeysSettings() {
     google: "",
     anthropic: "",
     deepseek: "",
+    mcp: "",
   });
 
   const [maskedKeys, setMaskedKeys] = useState<MaskedKeyState>({
@@ -68,6 +73,7 @@ export function ApiKeysSettings() {
     google: "",
     anthropic: "",
     deepseek: "",
+    mcp: "",
   });
 
   const [editing, setEditing] = useState<EditingState>({
@@ -75,6 +81,7 @@ export function ApiKeysSettings() {
     google: false,
     anthropic: false,
     deepseek: false,
+    mcp: false,
   });
 
   const [showApiKey, setShowApiKey] = useState<ApiKeyVisibility>({
@@ -82,6 +89,7 @@ export function ApiKeysSettings() {
     google: false,
     anthropic: false,
     deepseek: false,
+    mcp: false,
   });
 
   const [loading, setLoading] = useState<Record<ApiProvider, boolean>>({
@@ -89,6 +97,7 @@ export function ApiKeysSettings() {
     google: false,
     anthropic: false,
     deepseek: false,
+    mcp: false,
   });
 
   const [savedKeys, setSavedKeys] = useState<Record<ApiProvider, boolean>>({
@@ -96,6 +105,7 @@ export function ApiKeysSettings() {
     google: false,
     anthropic: false,
     deepseek: false,
+    mcp: false,
   });
 
   // Fetch existing API keys on component mount
@@ -115,6 +125,7 @@ export function ApiKeysSettings() {
           google: false,
           anthropic: false,
           deepseek: false,
+          mcp: false,
         };
 
         const masked: MaskedKeyState = {
@@ -122,6 +133,7 @@ export function ApiKeysSettings() {
           google: "",
           anthropic: "",
           deepseek: "",
+          mcp: "",
         };
 
         data.forEach((key: { provider: ApiProvider; apiKey?: string }) => {
@@ -140,6 +152,7 @@ export function ApiKeysSettings() {
           google: false,
           anthropic: false,
           deepseek: false,
+          mcp: false,
         });
 
         // Reset input fields
@@ -148,6 +161,7 @@ export function ApiKeysSettings() {
           google: "",
           anthropic: "",
           deepseek: "",
+          mcp: "",
         });
       }
     } catch (error) {
@@ -194,7 +208,14 @@ export function ApiKeysSettings() {
   };
 
   const saveApiKey = async (provider: ApiProvider) => {
-    if (!apiKeys[provider]) return;
+    let keyToSave = apiKeys[provider];
+    
+    // For MCP, we pass "GENERATE" if they just clicked the button
+    if (provider === "mcp" && !keyToSave && !savedKeys[provider]) {
+      keyToSave = "GENERATE";
+    }
+
+    if (!keyToSave) return;
 
     setLoading((prev) => ({ ...prev, [provider]: true }));
 
@@ -206,12 +227,20 @@ export function ApiKeysSettings() {
         },
         body: JSON.stringify({
           provider,
-          apiKey: apiKeys[provider],
+          apiKey: keyToSave,
         }),
       });
 
       if (response.ok) {
-        toast.success(`${providerName(provider)} API key saved successfully`);
+        const data = await response.json();
+        if (data.generatedKey) {
+          toast.success(`${providerName(provider)} API key generated! Please copy it now:`, {
+            description: data.generatedKey,
+            duration: 10000,
+          });
+        } else {
+          toast.success(`${providerName(provider)} API key saved successfully`);
+        }
         // Refresh the API keys to get the updated masked key
         fetchApiKeys();
       } else {
@@ -269,6 +298,8 @@ export function ApiKeysSettings() {
         return "Anthropic";
       case "deepseek":
         return "DeepSeek";
+      case "mcp":
+        return "MCP Access Token";
       default:
         return provider;
     }
@@ -284,6 +315,8 @@ export function ApiKeysSettings() {
         return "Leverage Anthropic's Claude models for safer AI interactions.";
       case "deepseek":
         return "Access DeepSeek's specialized models for technical tasks.";
+      case "mcp":
+        return "Generate a unique access token for your LLM agents (like Grokbot) to act on your behalf.";
       default:
         return "";
     }
@@ -337,14 +370,16 @@ export function ApiKeysSettings() {
                         </span>
                       </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => startEditing(provider)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                      <span className="sr-only">Edit API Key</span>
-                    </Button>
+                    {provider !== "mcp" && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => startEditing(provider)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Edit API Key</span>
+                      </Button>
+                    )}
                   </>
                 ) : (
                   <>
@@ -353,28 +388,32 @@ export function ApiKeysSettings() {
                         id={`${provider}-api-key`}
                         value={apiKeys[provider]}
                         type={isKeyVisible ? "text" : "password"}
-                        placeholder="Enter API Key"
+                        placeholder={provider === "mcp" ? "Click Generate below to create a secure key" : "Enter API Key"}
                         onChange={(e) =>
                           handleApiKeyChange(provider, e.target.value)
                         }
+                        readOnly={provider === "mcp"}
+                        disabled={provider === "mcp"}
                         className="pr-10"
                       />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        type="button"
-                        className="absolute right-0 inset-y-0 my-auto"
-                        onClick={() => toggleShowApiKey(provider)}
-                      >
-                        {isKeyVisible ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                        <span className="sr-only">
-                          {isKeyVisible ? "Hide" : "Show"} API Key
-                        </span>
-                      </Button>
+                      {provider !== "mcp" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          type="button"
+                          className="absolute right-0 inset-y-0 my-auto"
+                          onClick={() => toggleShowApiKey(provider)}
+                        >
+                          {isKeyVisible ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">
+                            {isKeyVisible ? "Hide" : "Show"} API Key
+                          </span>
+                        </Button>
+                      )}
                     </div>
                     {isEditing && (
                       <Button
@@ -459,18 +498,18 @@ export function ApiKeysSettings() {
             ) : (
               <Trash className="h-4 w-4 mr-2" />
             )}
-            Delete Key
+            {provider === "mcp" ? "Revoke Key" : "Delete Key"}
           </Button>
           <Button
             onClick={() => saveApiKey(provider)}
-            disabled={loading[provider] || (!apiKeys[provider] && !isEditing)}
+            disabled={loading[provider] || (!apiKeys[provider] && !isEditing && provider !== "mcp")}
           >
             {loading[provider] ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
               <Save className="h-4 w-4 mr-2" />
             )}
-            Save Key
+            {provider === "mcp" && !savedKeys[provider] ? "Generate Key" : "Save Key"}
           </Button>
         </CardFooter>
       </Card>
@@ -482,7 +521,7 @@ export function ApiKeysSettings() {
       <div className="mb-7 border-b border-[var(--rule)] pb-5">
         <h2 className="text-2xl font-semibold tracking-tight">API Keys</h2>
         <p className="text-muted-foreground">
-          Add your own API keys to use with different AI providers. Your keys
+          Add your own API keys to use with different AI providers, or generate an MCP Access Token for your agents. Your keys
           are encrypted and stored securely.
         </p>
       </div>
@@ -492,6 +531,7 @@ export function ApiKeysSettings() {
         {renderApiKeyCard("google")}
         {renderApiKeyCard("anthropic")}
         {renderApiKeyCard("deepseek")}
+        {renderApiKeyCard("mcp")}
       </div>
     </div>
   );

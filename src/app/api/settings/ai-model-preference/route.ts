@@ -31,8 +31,8 @@ export async function GET() {
     
     // If no model ID is saved, get the default model for the provider
     let finalModelId = modelId;
-    if (!finalModelId && provider && AI_MODELS[provider]) {
-      finalModelId = AI_MODELS[provider][0].id;
+    if (!finalModelId && provider && provider !== "mcp" && AI_MODELS[provider as keyof typeof AI_MODELS]) {
+      finalModelId = AI_MODELS[provider as keyof typeof AI_MODELS][0].id;
     }
     
     return NextResponse.json({
@@ -80,8 +80,8 @@ export async function POST(req: NextRequest) {
     }
     
     // Validate model ID if provided
-    if (modelId) {
-      const validModels = AI_MODELS[provider as ApiProvider].map(model => model.id);
+    if (modelId && provider !== "mcp") {
+      const validModels = AI_MODELS[provider as keyof typeof AI_MODELS].map(model => model.id);
       if (!validModels.includes(modelId)) {
         return NextResponse.json(
           { message: "Invalid model ID for the selected provider" },

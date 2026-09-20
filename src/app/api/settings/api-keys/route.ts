@@ -44,7 +44,14 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    const { provider, apiKey } = await req.json();
+    const body = await req.json();
+    const provider = body.provider;
+    let apiKey = body.apiKey;
+
+    if (provider === "mcp" && apiKey === "GENERATE") {
+      const crypto = await import("crypto");
+      apiKey = `mcp_${user.id}_${crypto.randomBytes(24).toString("hex")}`;
+    }
     
     if (!provider || !apiKey) {
       return NextResponse.json(
@@ -54,7 +61,7 @@ export async function POST(req: NextRequest) {
     }
     
     // Validate provider
-    const validProviders = ["openai", "google", "anthropic", "deepseek"];
+    const validProviders = ["openai", "google", "anthropic", "deepseek", "mcp"];
     if (!validProviders.includes(provider)) {
       return NextResponse.json(
         { message: "Invalid provider" },
@@ -64,7 +71,7 @@ export async function POST(req: NextRequest) {
     
     await saveUserApiKey(user.id, provider as ApiProvider, apiKey);
     
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, generatedKey: provider === "mcp" ? apiKey : undefined });
   } catch (error) {
     console.error("Error saving API key:", error);
     return NextResponse.json(
@@ -97,7 +104,7 @@ export async function DELETE(req: NextRequest) {
     }
     
     // Validate provider
-    const validProviders = ["openai", "google", "anthropic", "deepseek"];
+    const validProviders = ["openai", "google", "anthropic", "deepseek", "mcp"];
     if (!validProviders.includes(provider)) {
       return NextResponse.json(
         { message: "Invalid provider" },
