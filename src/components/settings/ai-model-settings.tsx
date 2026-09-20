@@ -219,7 +219,7 @@ export function AiModelSettings() {
         </CardContent>
       </Card>
 
-      {selectedProvider && (
+      {selectedProvider && selectedProvider !== "mcp" && AI_MODELS[selectedProvider as keyof typeof AI_MODELS] && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Select Model</CardTitle>
@@ -233,7 +233,7 @@ export function AiModelSettings() {
               onValueChange={handleModelChange}
               className="grid grid-cols-1 gap-4"
             >
-              {AI_MODELS[selectedProvider].map((model) => (
+              {AI_MODELS[selectedProvider as keyof typeof AI_MODELS].map((model) => (
                 <div key={model.id} className="flex items-start space-x-2">
                   <RadioGroupItem value={model.id} id={`model-${model.id}`} />
                   <Label
